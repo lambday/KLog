@@ -1,0 +1,223 @@
+\documentclass[a4,11pt]{memoir}
+
+\setlength{\parindent}{0cm}
+\setlength{\parskip}{0.15cm}
+
+\setlrmarginsandblock{2.5cm}{*}{1} 
+\setulmarginsandblock{2.5cm}{2.5cm}{*}
+\setmarginnotes{2.5mm}{2cm}{1em}
+\checkandfixthelayout
+
+\usepackage[latin1]{inputenc}
+\usepackage[english]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{
+  url,
+  fancyvrb,
+  multicol
+}
+\usepackage[colorlinks]{hyperref}
+\usepackage{graphicx}
+\usepackage[draft]{fixme}
+\usepackage{fourier}
+% \newcommand\starbreak{\fancybreak{\decosix\quad\decosix\quad\decosix}}
+
+%\newcommand\starbreak{\fancybreak{$*\quad*\quad*$}}
+
+\usepackage[scaled]{berasans}
+
+
+
+% \usepackage[T1]{fontenc}
+% \usepackage{tgpagella}
+% \usepackage[sc]{mathpazo}
+\usepackage{authblk}
+% \usepackage{times}
+\usepackage{pldoc2}
+
+
+%% Margin notes
+% \setlength{\marginparwidth}{3cm}
+\let\oldmarginpar\marginpar
+\renewcommand\marginpar[1]{\-\oldmarginpar[\raggedleft\footnotesize #1]%
+{\raggedright\footnotesize \fbox{\textbf{#1}}}}
+%%%%%%%%%%%
+
+
+\sloppy
+\makeindex
+
+\title{kLog\\
+  User's Manual}
+\author[1,2]{Paolo Frasconi}
+\author[2]{Fabrizio Costa}
+\author[2]{Luc De Raedt}
+\author[2]{Kurt De Grave}
+\affil[1]{Dipartimento di Sistemi e Informatica, Universit{\`a} degli
+  Studi di Firenze, via di Santa Marta 3, I-50139 Firenze, Italy}
+\affil[2]{Departement Computerwetenschappen, Katholieke Universiteit
+  Leuven, Celestijnenlaan 200A B-3001 Heverlee, Belgium}
+
+% \setcounter{secnumdepth}{3}% to get numbered subsections
+\setsecnumdepth{subsection}% to get numbered subsections
+
+\begin{document}
+
+\maketitle
+\chapterstyle{demo3}
+
+\frontmatter
+
+\tableofcontents
+% \setlength{\unitlength}{1pt}
+% \clearpage
+% \listoffigures
+% \clearpage
+% \listoftables
+% \clearpage
+% \listofegresults
+
+\mainmatter
+\chapterstyle{ell}
+
+
+\chapter{Introduction}
+
+This document provides basic information for kLog, a logical and
+relational language for developing kernel-based learning systems.
+kLog has been developed at K.U. Leuven and at Università degli Studi
+di Firenze by P. Frasconi, F. Costa, L. De Raedt and K. De Grave.
+
+License?
+
+\chapter{Tutorial}
+In this tutorial we explain by examples how to use kLog in several
+relational learning data sets. You are encouraged to scan the whole
+tutorial since most concepts are only explained the first time they
+are used. 
+
+kLog learns from interpretations, i.e. training data consist of sets
+of ground atoms that are true in a given interpretation. An
+alternative view is that each interpretation is an instance of a
+relational database.
+
+\section{Bursi}
+This is a small molecules data set and the goal is the discrimination
+between mutagenic and non-mutagenic compounds. Every molecule
+corresponds to one interpretation so the kLog job is binary
+classification of interpretations.
+
+\marginpar{kLog data sets}
+Data sets in kLog are stored as Prolog files consisting of collections
+of ground facts. The predefined predicate \predref{interpretation}{2}
+\index{interpretation/2} takes as its first argument an interpretation
+identifier and as its second argument a ground term.
+
+In the example below \predref{a,2} describes atoms, \predref{b,3}
+describes chemical bonds, \predref{sub,3} functional groups,
+\predref{subat,3} atom membership in functional groups,
+\predref{target,1} describes the category of the molecule
+(\texttt{mutagen} is the positive class, \texttt{nonmutagen} the
+negative class), and \predref{linked,2} describes how functional
+groups are linked together.
+
+\begin{linumcode}
+interpretation(i788,a(a1,c)).
+interpretation(i788,a(a2,c)).
+interpretation(i788,a(a3,cl)).
+interpretation(i788,a(a4,br)).
+interpretation(i788,a(a5,n)).
+interpretation(i788,a(a6,h)).
+interpretation(i788,b(a1,a2,1)).
+interpretation(i788,b(a1,a3,1)).
+interpretation(i788,b(a1,a4,1)).
+interpretation(i788,b(a2,a5,3)).
+interpretation(i788,b(a1,a6,1)).
+interpretation(i788,sub(f1,halide,1)).
+interpretation(i788,sub(f2,halide,1)).
+interpretation(i788,sub(f3,nitrile,2)).
+interpretation(i788,sub(f4,aliphatic_chain,1)).
+interpretation(i788,subat(f1,a3,1)).
+interpretation(i788,subat(f2,a4,1)).
+interpretation(i788,subat(f3,a2,1)).
+interpretation(i788,subat(f3,a5,2)).
+interpretation(i788,subat(f4,a1,1)).
+interpretation(i788,target(mutagen)).
+interpretation(i788,linked(f4,[link(f3,a2,a1),link(f1,a3,a1),link(f2,a4,a1)],[branch(1,3)],saturated)).
+\end{linumcode}
+
+\begin{linumcode}
+begin_domain.
+signature atm(atom_id::self, element::property)::intensional.
+atm(Atom, Element) :-
+    a(Atom,Element), \+(Element=h).
+
+signature bnd(atom_1@b::atm, atom_1@b::atm, type::property)::intensional.
+bnd(Atom1,Atom2,Type) :-
+    b(Atom1,Atom2,NType), describeBondType(NType,Type), atm(Atom1,_), atm(Atom2,_).
+
+signature fgroup(fgroup_id::self, group_type::property)::intensional.
+fgroup(Fg,Type) :- sub(Fg,Type,_).
+
+signature fgmember(fg::fgroup, atom::atm)::intensional.
+fgmember(Fg,Atom):- subat(Fg,Atom,_), atm(Atom,_).
+
+signature fg_fused(fg1@nil::fgroup, fg2@nil::fgroup, nrAtoms::property)::intensional.
+fg_fused(Fg1,Fg2,NrAtoms):- fus(Fg1,Fg2,NrAtoms,_AtomList).
+
+signature fg_connected(fg1@nil::fgroup, fg2@nil::fgroup, bondType::property)::intensional.
+fg_connected(Fg1,Fg2,BondType):-
+    con(Fg1,Fg2,Type,_AtomList),describeBondType(Type,BondType).
+
+signature fg_linked(fg::fgroup, alichain::fgroup, saturation::property)::intensional.
+fg_linked(FG,AliChain,Sat) :-
+    linked(AliChain,Links,_BranchesEnds,Saturation),
+    (Saturation = saturated ->
+     Sat = saturated
+    ;
+     Sat = unsaturated
+    ),
+    member(link(FG,_A1,_A2),Links).
+
+signature mutagenic::intensional.
+mutagenic :- target(mutagen).
+end_domain.
+\end{linumcode}
+
+\section{Biodeg}
+\section{UW-CSE}
+\section{WebKB}
+\section{IMDB}
+
+% The rest of this LaTeX document is generated using the LaTeX
+% backend of PlDoc, The SWI-Prolog documentation system
+
+\chapter{Main components of the kLog Prolog library}
+\input{syntax}
+\input{db}
+\input{graphicalize}
+\input{kfold}
+\input{learn}
+\input{flags}
+\input{repair}
+
+\chapter{Advanced components}
+\input{timing}
+\input{goals}
+\input{utils}
+\input{cinterface}
+
+\backmatter
+\chapterstyle{demo3}
+
+\clearpage
+\twocolindex
+%\renewcommand{\chaptermark}[1]{}
+\renewcommand{\preindexhook}{%
+The first page number is usually, but not always, the primary reference to
+the indexed topic.\vskip\onelineskip}
+\indexintoc
+
+%%%\raggedright  does nasty things to index entries
+\printindex
+\end{document}

@@ -1,0 +1,22 @@
+NSPDK_FeatureGenerator.o: NSPDK_FeatureGenerator.cc \
+ NSPDK_FeatureGenerator.h Utility.h FlagsService.h GraphClass.h \
+ BaseGraphClass.h Histogram.h FeatureGenerator.h CaseWrapper.h vectors.h \
+ wrapper.h libsvm/svm.h Hash.h Dataset.h FeatureGeneratorPool.h \
+ kLogMaster.h
+BaseGraphClass.o: BaseGraphClass.cc Utility.h BaseGraphClass.h
+CaseWrapper.o: CaseWrapper.cc CaseWrapper.h vectors.h wrapper.h \
+ libsvm/svm.h Utility.h
+GraphClass.o: GraphClass.cc GraphClass.h Utility.h BaseGraphClass.h
+FlagsService.o: FlagsService.cc FlagsService.h Utility.h
+Histogram.o: Histogram.cc Utility.h Histogram.h
+vectors.o: vectors.cc vectors.h wrapper.h
+timer.o: timer.cc timer.h
+sha1.o: sha1.cc sha1.h
+Hash.o: Hash.cc Hash.h Utility.h
+svm.o: libsvm/svm.cc libsvm/svm.h
+c_interface.o: c_interface.cpp yap.h Histogram.h GraphClass.h Utility.h \
+ BaseGraphClass.h FeatureGeneratorPool.h FeatureGenerator.h CaseWrapper.h \
+ vectors.h wrapper.h libsvm/svm.h NSPDK_FeatureGenerator.h FlagsService.h \
+ Hash.h Dataset.h kLogMaster.h ModelPool.h LB_ScalarModel.h timer.h \
+ Model.h Loss.h Performance.h LibSVM_Model.h External_Model.h shasum.h \
+ sha1.h

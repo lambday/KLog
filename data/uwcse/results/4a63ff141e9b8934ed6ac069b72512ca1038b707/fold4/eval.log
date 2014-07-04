@@ -1,0 +1,12 @@
+===== performance report (Local reporter  (on new data)) =====
+# Cases:   468
+Error:       3.42%
+Precision:  60.00%
+Recall:     60.00%
+F1-measure: 60.00%
+Contingency table:
+                  +       -
+Predicted +      12       8
+          -       8     440
+
+========= end report (Local reporter  (on new data)) =========

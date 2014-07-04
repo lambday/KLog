@@ -1,0 +1,8 @@
+The SVM solver from libsvm 3.0 by Chih-Chung Chang and Chih-Jen Lin
+http://www.csie.ntu.edu.tw/~cjlin/libsvm
+See COPYRIGHT
+
+Only svm.cc and svm.h are redistributed here (without modifications).
+Driver programs are unnecessary as their functionalities are already
+built into kLog.
+

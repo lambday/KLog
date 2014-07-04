@@ -1,0 +1,40 @@
+% This LaTeX document was generated using the LaTeX backend of PlDoc,
+% The SWI-Prolog documentation system
+
+
+
+\section{goals.pl: goals}
+
+\label{sec:goals}
+
+\begin{tags}
+    \tag{author}
+Paolo Frasconi, taking inspiration from various places
+\end{tags}
+
+Module for manipulating sequences of goals like lists.\vspace{0.7cm}
+
+\begin{description}
+    \predicate[nondet]{rmember}{2}{?A, ?B}
+True when \arg{B} is a comma-separated sequence and \arg{A} occurs in
+it. Similar to \predref{member}{2} for lists.
+
+    \predicate[det]{rabsent}{2}{+A, +B}
+True when \arg{B} is a comma-separated sequence and \arg{A} does not occur in
+it.
+
+    \predicate[det]{rappend}{3}{+A, +B, +C}
+True if \arg{A}, \arg{B}, and \arg{C} are comma-separated sequences and \arg{C} is the
+concatenation of \arg{A} and \arg{B}. Useful to generate "negative" edges
+Warning: does not terminate if \arg{A} is a free variable.
+
+    \predicate[det]{goals_to_list}{2}{+G, -L}
+True if \arg{G} is a comma-separated sequence, and \arg{L} the corresponding
+list of items.
+Warning: does not terminate if \arg{G} is a free variable.
+
+    \predicate[det]{list_to_goals}{2}{+L, -G}
+True if \arg{L} is a list of items and \arg{G} the corresponding comma-separated
+sequence Warning: does not terminate if \arg{L} is a free variable.
+\end{description}
+

@@ -1,0 +1,222 @@
+Target signature: advised_by
+Evaluation mode: stratified_kfold
+signatures -> [advised_by,has_position,in_phase,on_same_500_course,on_same_course,on_same_paper,professor,student,years_in_program]
+extensional_signatures -> [has_position,in_phase,years_in_program,advised_by,student,professor]
+intensional_signatures -> [on_same_course,on_same_500_course,on_same_paper]
+entities -> [professor,student]
+relationships -> [advised_by,has_position,in_phase,on_same_500_course,on_same_course,on_same_paper,years_in_program]
+active_signatures -> [advised_by,has_position,in_phase,on_same_500_course,on_same_course,on_same_paper,professor,student,years_in_program]
+active_entities -> [professor,student]
+active_relationships -> [advised_by,has_position,in_phase,on_same_500_course,on_same_course,on_same_paper,years_in_program]
+Signature: advised_by
+     kind -> relationship
+     arity -> 2
+     level -> extensional
+     column_types -> [student,professor]
+     column_names -> [p1,p2]
+     column_roles -> [p1,p0]
+     relational_arity -> 2
+     ghost -> no
+Signature: has_position
+     kind -> relationship
+     arity -> 2
+     level -> extensional
+     column_types -> [professor,property]
+     column_names -> [professor_id,position]
+     column_roles -> [p1,p0]
+     relational_arity -> 1
+     ghost -> no
+Signature: in_phase
+     kind -> relationship
+     arity -> 2
+     level -> extensional
+     column_types -> [student,property]
+     column_names -> [student_id,phase]
+     column_roles -> [p1,p0]
+     relational_arity -> 1
+     ghost -> no
+Signature: on_same_500_course
+     kind -> relationship
+     arity -> 2
+     level -> intensional
+     column_types -> [student,professor]
+     column_names -> [s,p]
+     column_roles -> [p1,p0]
+     relational_arity -> 2
+     ghost -> no
+     constructor ->
+-------------------
+on_same_500_course(A,B) :-
+   professor(B),
+   student(A),
+   ta(C,A,D),
+   taught_by(C,B,D),
+   course_level(C,level_500).
+-------------------
+     ext_clause -> on_same_500_course(_,_).
+Signature: on_same_course
+     kind -> relationship
+     arity -> 2
+     level -> intensional
+     column_types -> [student,professor]
+     column_names -> [s,p]
+     column_roles -> [p1,p0]
+     relational_arity -> 2
+     ghost -> no
+     constructor ->
+-------------------
+on_same_course(A,B) :-
+   professor(B),
+   student(A),
+   ta(C,A,D),
+   taught_by(C,B,D).
+-------------------
+     ext_clause -> on_same_course(_,_).
+Signature: on_same_paper
+     kind -> relationship
+     arity -> 2
+     level -> intensional
+     column_types -> [student,professor]
+     column_names -> [s,p]
+     column_roles -> [p1,p0]
+     relational_arity -> 2
+     ghost -> no
+     constructor ->
+-------------------
+on_same_paper(A,B) :-
+   student(A),
+   professor(B),
+   publication(C,A),
+   publication(C,B).
+-------------------
+     ext_clause -> on_same_paper(_,_).
+Signature: professor
+     kind -> entity
+     arity -> 1
+     level -> extensional
+     column_types -> [self]
+     column_names -> [professor_id]
+     column_roles -> [p0]
+     relational_arity -> 1
+     ghost -> no
+Signature: student
+     kind -> entity
+     arity -> 1
+     level -> extensional
+     column_types -> [self]
+     column_names -> [student_id]
+     column_roles -> [p0]
+     relational_arity -> 1
+     ghost -> no
+Signature: years_in_program
+     kind -> relationship
+     arity -> 2
+     level -> extensional
+     column_types -> [student,property]
+     column_names -> [p1,years]
+     column_roles -> [p1,p0]
+     relational_arity -> 1
+     ghost -> no
+kernel_points([student,professor,on_same_course,on_same_500_course,on_same_paper])
+-----------------------------------------------------------------------------------
+Prolog-level flags: (current values in square brackets)
+set_klog_flag(+Flag,+Value) to change a flag
+get_klog_flag(+Flag,-Value) to get its current value
+klog_flag(+Flag,?Value) sets or gets a flag value
+-----------------------------------------------------------------------------------
+referential_integrity_repair  [ignore]
+member([add,delete,ignore])
+>add< the defective E-tuple, >delete< the offending R-tuple, >ignore< to leave a "hanging edge"
+
+check_duplicate_ids     [no]
+member([yes,no])
+Set to >yes< to check databases for duplicate IDs
+
+klog_debug_messages     [yes]
+member([yes,no])
+Turns on additional debug messages
+
+kfold_random_seed       [123]
+integer
+Seed for the k-fold random generator. Zero means use current state
+
+pthreshold              [0.0]
+float
+If margin > pthreshold then case is induced (predicted as positive)
+
+clobber                 [no]
+member([yes,no])
+If set to no, prevents result directories from being overwritten
+
+n_debug_graphs          [5]
+integer
+Number of graphs to be dumped for debugging purposes
+
+-----------------------------------------------------------------------------------
+Current C++-level flags: (current values in square brakets)
+[set_|get_]klog_flag(+Who,+Flag,?Value) for flags of a C++ object identified by Who
+-----------------------------------------------------------------------------------
+my_model::epochs        [12]
+(unsigned)
+Number of epochs for SGD
+
+my_model::lambda        [0.0001]
+(double)
+Regularization parameter for SGD
+
+my_model::lossratio     [0.2]
+(double)
+Ratio of -ive vs +ive loss for SGD
+
+my_fg::distance         [2]
+(unsigned)
+Max distance between pairs of neighborhoods
+
+my_fg::hash_bit_mask    [2147483647]
+(unsigned)
+Mask for hash values
+
+my_fg::hash_bit_size    [31]
+(unsigned)
+Number of bits for hash values
+
+my_fg::match_type       [soft]
+(string)
+How to match neighborhoods: soft, hard, hard_propertyless, mixed, hard_soft, multiview
+
+my_fg::min_kernel       [0]
+(bool)
+Apply the min-kernel on top of the generated features
+
+my_fg::normalization    [1]
+(bool)
+Normalize feature vectors
+
+my_fg::radius           [2]
+(unsigned)
+Max radius of kernel neighborhoods
+
+my_fg::verbosity        [0]
+(unsigned)
+Number for debug versosity level
+
+klog_master::install_directory [/home/lambday/Downloads/klog/src]
+klog installation directory
+
+klog_master::save_subgraphs_directory []
+where GML subgraphs associated to cases are saved (e.g. for use with other kernels);
+If empty then subsgraphs are not saved
+
+klog_master::verbosity  [4]
+(0..5)
+Verbosity level: 0=silent, 1=errors, 2=warnings, 3=progress, 4=debug, 5=detailed debug
+
+-----------------------------------------------------------------------------------
+commit 6052be7340f3dbf432861b9934e7f79d3a0124d5
+Merge: 555f211 a7cde81
+Author: paolo-f <paolo.frasconi@unifi.it>
+Date:   Wed Feb 19 01:42:40 2014 +0100
+
+    Merged in kurtdegrave/klog-1/kurtdegrave/readme-url-didnt-match-the-paper-1392717757650 (pull request #2)
+    
+    readme URL didn't match the paper

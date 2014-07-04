@@ -1,0 +1,145 @@
+% This LaTeX document was generated using the LaTeX backend of PlDoc,
+% The SWI-Prolog documentation system
+
+
+
+\section{syntax.pl: kLog syntax}
+
+\label{sec:syntax}
+
+\begin{tags}
+    \tag{author}
+Paolo Frasconi
+    \tag{To be done}
+Safety checks, assumption checks, performance tuning
+\end{tags}
+
+This module provides syntactic extensions to Prolog for declaring
+signatures. Most of the functionalities in this module are
+implemented via \predref{term_expansion}{2}.
+
+\begin{description}
+    \item[History] 
+see git log
+\end{description}
+
+\vspace{0.7cm}
+
+\begin{description}
+    \prefixop{signature}{+S}
+Declare \arg{S} to be the type signature of a table, according to the following syntax:
+
+\begin{code}
+   <signature> ::= <header> [<sig_clauses>]
+   <sig_clauses> ::= <sig_clause> | [<sig_clause> <sig_clauses>]
+   <sig_clause> ::= <Prolog_clause>
+   <header> ::= <sig_name> "(" <args> ")" "::" <level> "."
+   <sig_name> ::= <Prolog_atom>
+   <args> ::= <arg> | [<arg> <args>]
+   <arg> ::= <column_name> [<role_overrider>] "::" <type>
+   <column_name> ::= <Prolog_atom>
+   <role_overrider> ::= "@" <role>
+   <role> ::= <Prolog_atom>
+   <type> ::= "self" | <sig_name>
+   <level> ::= "intensional" | "extensional"
+\end{code}
+
+Arguments are given by default a role that corresponds to their
+position in the argument list. The role can be overridden using the
+@ syntax, e.g. to represent undirected relations. By default, the
+role of the i-th argument is: * functor+i if the argument is an
+identifier * functor+t if the argument is a property and t its type
+
+thus, e.g. if a_id and b_id are identifier names, and c_type is a
+property name, the following signatures are equivalent:
+
+\begin{code}
+signature foo(g_id::gnus,t_id::tnus,c::property)::extensional.
+signature foo(g_id@1,t_id@2,c@3::property)::extensional.
+\end{code}
+
+Forcing the role can also easily implement undirected edges. Here is an
+example from mutagenesis:
+
+\begin{code}
+signature atm( atom_id::self,
+               element::property,
+               quantaval::property,
+               chargeval::property).
+signature bond( atom_id@b::atom,
+                atom_id@b::atom,
+                bondtype::property).
+\end{code}
+
+More complex cases can be easily conceived, e.g. one can assign the
+same role to every atom in a benzene ring but distinguish different
+rings in a functional group like ball3 or phenanthrene. See
+experiments/mutagenesis for details.
+
+    \predicate[det,private]{expand_signature}{2}{+S, +Level}
+Auxiliary predicate for expanding a signature declaration where \arg{S} is
+a fact with typed arguments and \arg{Level} is either 'intensional' or
+'extensional'. This predicate performs a number of checks and
+asserts various signature traits (see below).
+\predref{term_expansion}{2}.
+
+    \predicate[det]{domain_traits}{2}{?TraitsSpec, ?TraitsVal}
+Query domain traits. \arg{TraitsSpec} is one of:
+
+\begin{itemize}
+    \item signatures: list of all signature names
+    \item entities: list of all entity signature names
+    \item relationships: list of all relationship signature names
+\end{itemize}
+
+    \predicate[det]{domain_traits}{0}{}
+List on the standard output all the domain traits and signature
+traits for all signatures.
+
+    \predicate[det]{domain_traits}{1}{+Stream}
+List on output \arg{Stream} all the domain traits and signature
+traits for all signatures.
+
+    \predicate[det]{signature_traits}{3}{?Name, ?TraitsSpec, ?TraitsVal}
+Query signature traits. \arg{Name} is the signature name. \arg{TraitsSpec} is one of:
+
+\begin{itemize}
+    \item kind: either entity or relationship
+    \item arity: the number of arguments
+    \item level: either intensional (deduced) or extensional
+    \item column_types: list of argument types
+    \item column_names: list of argument names
+    \item column_roles: list of argument roles
+    \item relational_arity: the number of non-property arguments
+    \item ext_clause: goal for finding all ground tuples for this signature
+The value is returned in \arg{TraitsVal}.
+\end{itemize}
+
+    \predicate[semidet]{id_position}{2}{+S, -Position}
+If \arg{S} is the name of a valid entity signature, unify \arg{Position} with
+the position of the identifier in the argument list. Otherwise fail.
+
+    \predicate[semidet]{extract_properties}{3}{+Functor, +Args, -Properties}
+If \arg{Functor} is the name of a valid signature whose arity matches the
+length of the list \arg{Args}, then unify \arg{Properties} with the list of
+items in \arg{Args} that appear at positions of property type. Otherwise
+fail.
+
+    \predicate[semidet]{extract_identifiers}{3}{+Functor, +Args, -IDs}
+If \arg{Functor} is the name of a valid signature whose arity matches the
+length of the list \arg{Args}, then unify \arg{IDs} with the list of items in
+\arg{Args} that appear at positions of identifier type. Otherwise fail.
+
+    \predicate[semidet]{extract_references}{2}{+S, -Refs}
+If s is the name of a valid signature, then unify \arg{Refs} with the
+subsequence of entity types referenced by \arg{S} but $>$self$<$ is replaced
+by \arg{S}. If a type is referred to multiple times, it appears multiple
+time in \arg{Refs}.
+
+    \predicate[semidet]{is_kernel_point}{2}{+Functor, -YesNo}
+If \arg{Functor} is the name of a valid signature then unify \arg{YesNo} with
+'yes' iff the signature has declared a neighborhood method. All
+graph vertices expanded from this signature will be used as center
+points for the kernel calculation.
+\end{description}
+

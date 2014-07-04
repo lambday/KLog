@@ -1,0 +1,12 @@
+===== performance report (advised_by, k-fold-CV) =====
+# Cases:  2824
+Error:       5.38%
+Precision:  36.36%
+Recall:     46.02%
+F1-measure: 40.63%
+Contingency table:
+                  +       -
+Predicted +      52      91
+          -      61    2620
+
+========= end report (advised_by, k-fold-CV) =========

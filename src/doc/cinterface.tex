@@ -1,0 +1,258 @@
+% This LaTeX document was generated using the LaTeX backend of PlDoc,
+% The SWI-Prolog documentation system
+
+
+
+\section{doc/cinterface.pl: C++ interface}
+
+\label{sec:cinterface}
+
+General mechanism: functions listed here are the interface to
+Prolog. All model-related predicates take an atom as first argument
+that identifies the model (valid atoms should be strings, not
+integers). The identifier is then used as a key for a dictionary
+stored in the singleton The_ModelPool with associates the model
+name to a pointer to an object of Model class (Model is the
+abstract class from which all Models are inherited). Typically,
+functions defined here should call a homologous method of the class
+ModelPool that will dispatch the message to the actual model.
+
+\subsection{Example}
+
+Prolog code in the kLog script:
+
+\begin{code}
+new_model(my_model,libsvm_c_svc),
+\end{code}
+
+in c_interface, c_new_model() calls the method of the singleton The_ModelPool
+
+\begin{code}
+The_ModelPool.new_model("my_model","libsvm_c_svc")
+\end{code}
+
+which eventually creates an object of class
+Libsvm_Model$<$BinaryClassifierReporter$>$. now back to the prolog
+code, the atom my_model can be used as a handle for referring to
+the C++ object just created, e.g.
+
+\begin{code}
+kfold(target_relation, 10, my_model, my_fg)
+\end{code}
+
+that causes the invocation of the method
+
+\begin{code}
+The_ModelPool.train("my_model",vector_of_interpretation_ids)
+\end{code}
+
+A similar mechanism is used for feature generators via the
+singleton The_FeatureGeneratorPool of class FeatureGeneratorPool.
+
+\subsection{Data}
+
+Data is contained in the singleton The_Dataset of type
+Dataset. There is a graph for each interpretation and possibly
+several sparse vectors associated to the scalar predictions (called
+cases in kLog). The former are accessed from prolog via
+interpretation identifiers, the latter via "case" identifiers.
+
+The_Dataset maintains internal dictionaries (indices) to
+associate identifiers to graph pointers or sparse vector pointers.
+
+Additionally, The_Dataset maintains a map from interpretation ids
+to a set$<$string$>$ of case ids. Use The_Dataset.get_cases() to
+retrieve this map.\vspace{0.7cm}
+
+\begin{description}
+    \predicate[det]{set_c_klog_flag}{3}{+Client:atom, +Flag:atom, +Value:atom}
+Sets C-level kLog \arg{Flag} to \arg{Value} for \arg{Client}
+
+    \predicate[det]{get_c_klog_flag}{3}{+Client, +Flag, -Value}
+Unifies \arg{Value} with the current value of \arg{Flag} in \arg{Client}.
+
+    \predicate[det]{document_klog_c_flags}{2}{+Client:atom, -Documentation:atom}
+Retrieve \arg{Documentation} for all flags belonging to \arg{Client}.
+
+    \predicate[nondet]{klog_c_flag_client}{1}{?Client}
+Backtrack over the IDs of the C language flag clients.
+
+    \predicate[nondet]{klog_c_flag_client_alt}{1}{?Client}
+Backtrack over the IDs of the C language flag clients.
+This implementation uses less memory, it doesn't store a copy of all alternatives in memory
+
+    \predicate[det]{c_shasum}{2}{+Filename, -HashValue}
+Unifies \arg{HashValue} with the SHA1 hash value of the file (which must exist).
+
+    \predicate[det]{add_graph}{1}{+Id}
+Create a new graph identified by \arg{Id}. \arg{Id} can be any valid Prolog
+atom.
+
+    \predicate[det]{add_graph_if_not_exists}{1}{+Id}
+Create a new graph identified by \arg{Id} unless it already exists. \arg{Id}
+can be any valid Prolog atom
+
+    \predicate[det]{delete_graph}{1}{+Id}
+Delete graph identified by \arg{Id}.
+
+    \predicate[det]{write_graph}{1}{+Id}
+Write graph identified by \arg{Id} on the standard output.
+
+    \predicate{export_graph}{3}{+Id, +Filename, +Format}
+Save graph identified by \arg{Id} into \arg{Filename} in specified
+\arg{Format}. File extension is automatically created from format (it is
+actually identical). Valid formats are dot, csv, gml, gdl, gspan.
+
+    \predicate[det]{save_as_libsvm_file}{1}{+Filename}
+Save a sparse vector dataset into \arg{Filename} in libsvm format. Data
+is generated for all interpretations in the attached dataset. Every
+line is a case. The line is ended by a comment giving the case
+name, which is formed by concatenating the interpretation name and
+the identifiers contained in the target fact.
+
+    \predicate[det]{cleanup_data}{0}{}
+Clean completely graphs and sparse vectors.
+
+    \predicate[det]{clean_internals}{1}{+GId}
+Clean up internal data structures on \arg{GId} to recover memory
+
+    \predicate[det]{vertex_alive}{3}{+GId, +VId, ?State}
+Set/get aliveness \arg{State} (yes/no) of vertex \arg{VId} in graph \arg{GId}
+
+    \predicate[det]{set_signature_aliveness}{3}{+GId, +S, +State}
+Set aliveness state to \arg{State} to every vertex of signature \arg{S} in graph \arg{GId}
+
+    \predicate[det]{set_slice_aliveness}{3}{+GId, +Slice, +State}
+Set aliveness state to Status to every vertex in slice \arg{Slice} in graph \arg{GId}
+
+    \predicate[det]{set_signature_in_slice_aliveness}{4}{+GId, +S, +SliceID, +State}
+Set aliveness state to \arg{State} to every vertex of signature \arg{S} in
+slice \arg{SliceID} in graph \arg{GId}
+
+    \predicate[det]{set_all_aliveness}{2}{+GId, +State}
+Set aliveness state to \arg{State} in every vertex in graph \arg{GId}
+
+    \predicate[det]{add_vertex}{8}{+GId, +SliceId, +Label, +IsKernelPoint, +IsAlive, +Kind, +SymId, -Id}
+Create new vertex in graph \arg{GId} with label \arg{Label} and unify \arg{Id} with
+the identifier of the new vertex Set KernelPoint to 'yes' to
+indicate that this vertex is a kernel point Set \arg{IsAlive} to 'yes'
+to indicate that this vertex is alive (i.e. actually exists). Dead
+vertices are used for structured output predictions. \arg{Kind} should
+be either 'r' for relationship or 'i' for an entity set. \arg{SymId} is
+the symbolic id of the vertex and is only used for
+visualization/debugging purposes. \arg{SliceId} is the slice to which
+this vertex belongs to.
+
+    \predicate[det]{add_edge}{5}{+GId, +V, +U, +Label, -Id}
+Create new edge between \arg{U} and \arg{V} with label \arg{Label} and unify \arg{Id} with
+the identifier of the new edge
+
+    \predicate[det]{make_sparse_vector}{6}{+ModelType:atom, +FG:atom, +IntId:atom, +SliceId, +CaseId:atom, +ViewPoints:list_of_numbers}
+Use feature generator \arg{FG} to make a sparse vector from graph Ex and
+focusing on the list of vertices in \arg{ViewPoints}. The sparse vector
+is then identified by \arg{CaseId}. \arg{ModelType} is used to construct an
+appropriate internal representation of the feature vector.
+
+    \predicate[det]{write_sparse_vector}{1}{+CaseId}
+Write the sparse vector identified by \arg{CaseId}.
+
+    \predicate[det]{add_feature_to_sparse_vector}{3}{+CaseId, +FeatureStr, +FeatureVal}
+Adds new feature to sparse vector identified by \arg{CaseId}. \arg{FeatureStr}
+is hashed to produce the index in the sparse vector. \arg{FeatureVal} is
+then assigned to vector[hash(\arg{FeatureStr})]
+This method was introduced for ghost signatures
+
+    \predicate[det]{set_target_label}{2}{+CaseID, +Label}
+Set the label for SVM \arg{CaseID}
+
+    \predicate[det]{set_label_name}{2}{+Label:atom, +NumericLabel:number}
+Record label name
+
+    \predicate[det]{set_rejected}{1}{+CaseID}
+Set reject flag for SVM \arg{CaseID}
+
+    \predicate[det]{clear_rejected}{0}{}
+Clear all reject flags
+
+    \predicate[det]{remap_indices}{0}{}
+Remap feature vector indices in a small range
+
+    \predicate[det]{print_graph_ids}{0}{}
+Print all IDs for graphs in the dataset
+
+    \predicate[det]{new_feature_generator}{2}{+FGId, +FGType}
+Create a new feature generator identified by atom \arg{FGId}
+
+    \predicate[det]{delete_feature_generator}{1}{+Id}
+Delete feature_generator identified by \arg{Id}.
+
+    \predicate[det]{new_model}{2}{+ModelId, +ModelType}
+Create a new model identified by atom \arg{ModelId}
+
+    \predicate[det]{delete_model}{1}{+Id}
+Delete model identified by \arg{Id}.
+
+    \predicate[det]{model_type}{2}{+ModelId, -ModelType}
+Unifies \arg{ModelType} with type of model identified by \arg{ModelId}.
+
+    \predicate[det]{write_model}{1}{+Id}
+Write model identified by \arg{Id}.
+
+    \predicate[det]{load_model}{2}{+Id, +Filename}
+Load model identified by \arg{Id} from \arg{Filename}
+
+    \predicate[det]{save_model}{2}{+Id, +Filename}
+Save model identified by \arg{Id} into \arg{Filename} in kLog internal format
+
+    \predicate[det]{check_model_ability}{2}{+ModelId:atom, +Ability:atom}
+Ask \arg{ModelId} whether it can perform the task specified in \arg{Ability}.
+
+    \predicate[det]{train_model}{2}{+ModelId, +DatasetSpec}
+Train model identified by ModelIdId. The list \arg{DatasetSpec} should
+contain identifiers of interpretations. Case identifiers are then
+generated in Pool.h
+
+    \predicate[det]{test_dataset}{3}{+ModelId:atom, +DatasetSpec:atom, +NewData:atom}
+Test model identified by ModelIdId on a dataset. The list
+\arg{DatasetSpec} should contain identifiers of interpretations. Case
+identifiers are then generated in Pool.h. If \arg{NewData} is "true" (or
+"yes") then it is assumed that the evaluation is on test data and
+results are accumulated in the global reporter of the
+model. Otherwise it is assumed that we are testing on training data
+and only the local reporter is affected.
+
+    \predicate[det]{dot_product}{3}{+CaseId1, +CaseId2, -Value}
+Unify \arg{Value} with the dot product of the feature vectors attached to
+case identifiers \arg{CaseId1} and \arg{CaseId2}.
+
+    \predicate[det]{set_model_wd}{2}{+ModelId, +WorkingDir}
+Inform model of the working directory. This is mainly needed for
+external models in order to keep a clean filesystem.
+
+    \predicate[det]{reset_reporter}{2}{+ModelId, +Reporter}
+Reset a reporter of the model. \arg{Reporter} should be either local or
+global. 
+
+    \predicate[det]{reset_reporter}{3}{+ModelId, +Reporter, +Description}
+Reset a reporter of the model. \arg{Reporter} should be either local or
+global. Also sets the description message to \arg{Description}.
+
+    \predicate[det]{report}{2}{+ModelId, +Reporter}
+Ask a performance reporter to write a report on the
+standard output. \arg{Reporter} should be either local or global.
+
+    \predicate[det]{report}{3}{+ModelId, +Filename, +Reporter}
+Ask a performance reporter to write a report to \arg{Filename}. \arg{Reporter}
+should be either local or global.
+
+    \predicate[det]{save_predictions}{3}{+ModelId, +Dir, +Reporter}
+Save predictions stored in a performance reporter in output.log
+and maybe output.yyy in \arg{Dir}. Do AUC analysis for binary
+classification reporters. \arg{Reporter} should be either local or global.
+
+    \predicate[det]{get_prediction}{3}{+ModelId, +CaseID, -Margin}
+Obtain prediction for \arg{CaseID} in the global reporter of model
+identified by \arg{ModelId}. WARNING: fails without displaying any message
+if arguments are not valid.
+\end{description}
+

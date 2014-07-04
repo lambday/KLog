@@ -1,0 +1,29 @@
+% This LaTeX document was generated using the LaTeX backend of PlDoc,
+% The SWI-Prolog documentation system
+
+
+
+\section{utils.pl}
+
+\label{sec:utils}
+
+\begin{description}
+    \predicate{aformat}{3}{-Atom, +Format, +List}
+similar to sformat but builds an atom instead of a list of char codes.
+
+    \predicate[det]{new_progress_bar}{2}{+BarName:atom, +MaxCount:integer}
+create a progress bar called \arg{BarName}. The gauged task is completed
+when the counter for the bar reaches the integer value \arg{MaxCount}
+
+    \predicate[det]{progress_bar}{1}{+BarName:atom}
+increase the counter for the progress bar \arg{BarName} and maybe display
+information on screen.
+
+    \predicate[det]{slice}{4}{?L1, +I, +K, ?L2}
+\arg{L2} is the list of the elements of \arg{L1} between index \arg{I} and index \arg{K}
+(both included).
+
+    \predicate[det]{shuffle}{2}{+Ex:list, -Ex1:list}
+Unify \arg{Ex1} with a random permutation of list \arg{Ex}.
+\end{description}
+

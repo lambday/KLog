@@ -1,0 +1,15 @@
+digraph dependency {
+node [shape=box]
+"on_same_course/2" -> "professor/1"
+"on_same_course/2" -> "student/1"
+"on_same_course/2" -> "ta/3"
+"on_same_course/2" -> "taught_by/3"
+"on_same_500_course/2" -> "professor/1"
+"on_same_500_course/2" -> "student/1"
+"on_same_500_course/2" -> "ta/3"
+"on_same_500_course/2" -> "taught_by/3"
+"on_same_500_course/2" -> "course_level/2"
+"on_same_paper/2" -> "student/1"
+"on_same_paper/2" -> "professor/1"
+"on_same_paper/2" -> "publication/2"
+}

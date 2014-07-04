@@ -1,0 +1,212 @@
+\documentclass[11pt]{article}
+\usepackage{times}
+\usepackage{pldoc}
+\sloppy
+\makeindex
+
+\begin{document}
+% This LaTeX document was generated using the LaTeX backend of PlDoc,
+% The SWI-Prolog documentation system
+
+
+
+\section{json.pl -- graphicalize}
+
+\label{sec:json}
+
+\begin{tags}
+    \tag{author}
+Paolo Frasconi
+    \tag{To be done}
+Safety checks, assumption checks, throwing exceptions, performance tuning
+\end{tags}
+
+This module contains predicates for converting a deductive database
+into a set of graphs, one for each interpretation, using the mapping
+procedures described below.
+
+\begin{description}
+    \item[Concept] 
+Given a relational data base (a collection of ground facts), the
+graphicalizer generates an output graph according to one of two
+possible strategies.
+    \item[Database] 
+The database is assumed to be in the following form:
+\end{description}
+
+\begin{itemize}
+    \item Attributes are either object identifiers or properties.
+    \item For each identifier i, there is at least one table t such that i
+is the primary key of t. This table is basically the class or
+entity-set of i.
+    \item For each table, the primary key only consists of identifiers. So
+multiway relationships are always represented by a table keyed by
+the object identifiers involved in the relationship, augmented
+with properties of the relationship.
+\end{itemize}
+
+\begin{description}
+    \item[Graphicalization Stragegy 1] 
+\end{description}
+
+\begin{itemize}
+    \item There is a vertex for each identifier (called an i-vertex), a
+vertex for each relationship tuple (an r-vertex) and a vertex for
+each occurrence of a property value (a p-vertex). p-vertices can be
+either associated with predictors or with responses (the latter are
+specified by an asterisk * in the signature, see below).
+    \item There is an edge between an i-vertex and an r-vertex if i belongs
+to the tuple r. There is an edge between an i-vertex and a p-vertex
+if p is a property of i. Finally there is an edge between an
+r-vertex and a p-vertex if p is a property of r. There are no other
+edges.
+\end{itemize}
+
+\begin{description}
+    \item[Graphicalization Stragegy 2] 
+\end{description}
+
+\begin{itemize}
+    \item There is a vertex for each identifier (called an i-vertex), and a
+vertex for each relationship tuple (an r-vertex). i-vertices are
+labeled by a ground fact whose functor is the name of the entity-set
+(class) of i and whose arguments are properties of the
+class. r-vertices are labeled by a ground fact whose functor is the
+name of the relationship and whose arguments are the properties of
+the relationship.
+    \item There is an edge between an i-vertex and an r-vertex if i belongs
+to the tuple r.
+\end{itemize}
+
+\begin{description}
+    \item[Usage] 
+The module provides two fundamental predicates: \predref{attach}{1}, for
+loading a data set (variants: \predref{attach}{2} and \predref{attach}{3} for two and
+three data files), and \predref{run}{1} for graphicalizing the data set and
+saving the output in an extended-gspan file. The extended-gspan
+format is defined by the following grammar:
+
+\begin{code}
+<egspan> ::= <list-of-graphs>
+<list-of-graphs> ::= <graph> | <graph> "\n" <list-of-graphs>
+<graph> ::= <header> "\n" <list-of-vertices> "\n" <list-of-edges>
+<header> ::= "t # Example:" <graph-identifier>
+<graph-identifier> ::= <alphanumeric-string>
+<list-of-vertices> ::= <vertex> | <vertex> "\n" <list-of-vertices>
+<list-of-edges> ::= <edge> | <edge> "\n" <list-of-edges>
+<vertex> ::= "v" <vertex-id> <vertex-label>
+<vertex-id> ::= <integer>
+<vertex-label> ::= <pair> | <pair> "," <vertex-label>
+<pair> ::= <key> ":" <value>
+<key> ::= <alphanumeric-string>
+<value> ::= <alphanumeric-string>
+<edge> ::= "e" <vertex-id> <vertex-id> <edge-label>
+<edge-label> ::= <alphanumeric-string>
+\end{code}
+
+The first pair in a vertex list has the form meta:$<$kind$>$ where kind
+is one of i, r, p, and q (the last two only for stragegy 1). In
+strategy 1 there is only one additional pair in the form
+label:$<$value$>$, while in stragegy 2 the second pair has the form
+label:$<$functor$>$ where $<$functor$>$ is the name of the entity-set
+(i-vertices) or the name of the relationship (r-vertices) while the
+remaining pairs encode the tuple of properties in the form
+$<$property-name$>$:$<$value$>$.
+    \item[Syntactical conventions] 
+The extensional declarations should use the special predicate
+\qpredref{db}{interpretation}{2} whose first argument is an identifier for the
+interpration (any Prolog term) and whose second argument is a fact.
+    \item[History] 
+git log
+\end{description}
+
+\vspace{0.7cm}
+
+\begin{description}
+    \predicate[det]{atom_json_term}{3}{+Atom, -JSONTerm, +Options}
+\nodescription
+    \predicate[det]{atom_json_term}{3}{-Text, +JSONTerm, +Options}
+Convert between textual representation and a JSON term. In
+\textit{write} mode, the option as(Type) defines the output type, which
+is one of \const{atom}, \const{string} or \const{codes}.
+
+    \predicate[det]{json_read}{2}{+Stream, -Term}
+\nodescription
+    \predicate[det]{json_read}{3}{+Stream, -Term, +Options}
+Read next JSON value from \arg{Stream} into a Prolog term. \arg{Options}
+are:
+
+\begin{description}
+    \termitem{null}{NullTerm}
+\arg{Term} used to represent JSON \const{null}. Default @(null)
+    \termitem{true}{TrueTerm}
+\arg{Term} used to represent JSON \const{true}. Default @(true)
+    \termitem{false}{FalsTerm}
+\arg{Term} used to represent JSON \const{false}. Default @(false)
+    \termitem{value_string_as}{Type}
+Prolog type used for strings used as value. Default
+is \const{atom}. The alternative is \const{string}, producing a
+packed string object. Please note that \const{codes} or
+\const{chars} would produce ambiguous output and is therefore
+not supported.
+\end{description}
+
+    \predicate[det,private]{ws}{2}{+Stream, -Next}
+\nodescription
+    \predicate[private]{ws}{3}{+C0, +Stream, -Next}
+Skip white space on the \arg{Stream}, returning the first non-ws
+character. Also skips \verb$//$ ... comments.
+
+    \predicate[det,private]{json_write_string}{2}{+Stream, +Text}
+Write a JSON string to \arg{Stream}. \arg{Stream} must be opened in a
+Unicode capable encoding, typically UTF-8.
+
+    \predicate[det,private]{json_write_indent}{3}{+Stream, +Indent, +TabDistance}
+Newline and indent to \arg{Indent}. A Newline is only written if
+line_position(\arg{Stream}, Pos) is not 0. Then it writes \arg{Indent} \Sidiv{}
+\arg{TabDistance} tab characters and \arg{Indent} mode \arg{TabDistance} spaces.
+
+    \predicate[det]{json_write}{2}{+Stream, +Term}
+\nodescription
+    \predicate[det]{json_write}{3}{+Stream, +Term, +Options}
+Write a JSON term to \arg{Stream}. The JSON object is of the same
+format as produced by \predref{json_read}{2}, though we allow for some more
+flexibility with regard to pairs in objects. All of Name=Value,
+Name-Value and Name(Value) produce the same output. In addition
+to the options recognised by \predref{json_read}{3}, we process the
+following options are recognised:
+
+\begin{description}
+    \termitem{width}{+Width}
+Width in which we try to format the result. Too long lines
+switch from \textit{horizontal} to \textit{vertical} layout for better
+readability. If performance is critical and human
+readability is not an issue use Width = 0, which causes a
+single-line output.
+    \termitem{step}{+Step}
+Indentation increnment for next level. Default is 2.
+    \termitem{tab}{+TabDistance}
+Distance between tab-stops. If equal to Step, layout
+is generated with one tab per level.
+\end{description}
+
+    \predicate[semidet,private]{json_print_length}{5}{+Value, +Options, +Max, +Len0, +Len}
+True if \arg{Len}-\arg{Len0} is the print-length of \arg{Value} on a single line
+and \arg{Len}-\arg{Len0} \Sle{} \arg{Max}.
+
+\begin{tags}
+    \tag{To be done}
+Escape sequences in strings are not considered.
+\end{tags}
+
+    \predicate[semidet]{is_json_term}{1}{@Term}
+\nodescription
+    \predicate[semidet]{is_json_term}{2}{@Term, +Options}
+True if \arg{Term} is a json term. \arg{Options} are the same as for
+\predref{json_read}{2}, defining the Prolog representation for the JSON
+\const{true}, \const{false} and \const{null} constants.
+\end{description}
+
+
+\printindex
+\end{document}

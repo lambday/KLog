@@ -1,0 +1,148 @@
+% This LaTeX document was generated using the LaTeX backend of PlDoc,
+% The SWI-Prolog documentation system
+
+
+
+\section{graphicalize.pl: Convert deductive databases into graphs}
+
+\label{sec:graphicalize}
+
+\begin{tags}
+    \tag{author}
+Paolo Frasconi
+    \tag{To be done}
+Safety checks, assumption checks, throwing exceptions, performance tuning
+\end{tags}
+
+This module contains predicates for converting a set of deductive
+databases into a set of graphs, one for each interpretation, using
+the mapping procedures described below.
+
+\begin{description}
+    \item[Concept] 
+First the database is converted into a collection of ground facts by
+computing intensional tables. Then the graphicalizer generates a
+graph for each interpretation.
+    \item[Database] 
+The database is assumed to be in the following 'E/R' normal form:
+\end{description}
+
+\begin{itemize}
+    \item Attributes are either object identifiers or properties.
+    \item For each identifier i, there is at least one table t such that i
+is the primary key of t. This table is basically the class or
+entity-set of i.
+    \item For each table, the primary key only consists of identifiers. So
+multiway relationships are always represented by a table keyed by
+the object identifiers involved in the relationship, augmented
+with properties of the relationship.
+\end{itemize}
+
+\begin{description}
+    \item[Graphicalization strategy] 
+\end{description}
+
+\begin{itemize}
+    \item There is a vertex for each entity tuple (called an i-vertex), and
+a vertex for each relationship tuple (an r-vertex). Vertices are
+labeled by their tuples. Note that because of the above assumptions
+there is one and only one i-vertex for each identifier.
+    \item There is an edge between an i-vertex and an r-vertex if i belongs
+to the tuple r. The graph is bipartite and there are no edges
+between vertices of the same kind.
+\end{itemize}
+
+\begin{description}
+    \item[Usage] 
+The module provides two fundamental predicates: \predref{attach}{1}, for
+loading a data set (variant \predref{attach}{0} for toy datasets asserted
+directly in the kLog script), and \predref{make_graphs}{0}, \predref{make_graphs}{1} for
+generating graphs.
+    \item[History] 
+git log
+\end{description}
+
+\vspace{0.7cm}
+
+\begin{description}
+    \predicate[det]{attach}{1}{+DataFile:atom_or_list_of_atoms}
+Load a dataset i.e. a set of database instances (or interpretations)
+by reconsulting the given file(s). Any previously attached data set
+will be internally cleaned up so only one data set can be attached
+at a time. Internally the predicate just consults the file
+containing declarations of the predicate \qpredref{db}{interpretation}{2} (a
+collection of ground facts). The predicate is stored in the
+'graphicalize' module and should be never necessary to inspect it
+from outside this module.
+
+    \predicate[det]{attach}{0}{}
+This first form is useful to attach a toy dataset written directly in
+the kLog script. The data need to be declared as
+
+\begin{code}
+db:interpretation(Ex,Fact).
+\end{code}
+
+    \predicate[det]{detach}{0}{}
+Retracts all data ground atoms and results of graphicalization.
+
+    \predicate[det]{examples}{1}{-Set:list_of_atoms}
+Returns in \arg{Set} the interpretation identifiers in the attached domain.
+
+    \predicate[det]{database}{0}{}
+For debugging purposes. List the extensional database.
+
+    \predicate[det]{database}{1}{?Ex}
+For debugging purposes. List the extensional database of interpretation \arg{Ex}.
+
+    \predicate[det]{assert_background_knowledge}{1}{+Dataset:list_of_atoms}
+Deduce intensional facts from the background knowledge and
+interpretations listed in \arg{Dataset} and assert all of them (at the
+top) in the form db:interpretation(Ex,Fact). Once asserted in this
+way, intensional and extensional groundings are
+indistinguishable. Use the first form to assert background knowledge
+for every interpretation in the domain.
+
+    \predicate[det,private]{save_view}{1}{+Filename}
+Save a view of the data using only declared signatures. This allows
+to write kLog scripts for data set transformation.
+
+    \predicate[det]{make_graphs}{0}{}
+Graphicalize the attached interpretations. Graphs are stored in
+memory. 
+
+    \predicate[det,private]{vertex_map}{3}{Ex:atom, SymID:atom, NumID:integer}
+Dynamically asserted. Dictionary mapping a symbolic vertex
+identifier (used in Prolog) to its numeric identifier in the
+internal C++ representation of the graph. The symbolic identifier is
+defined as follows. If v is an i-vertex, then \arg{SymID} is the tuple
+identifier. If v is an r-vertex, then \arg{SymID} is the concatenation of
+the signature name and the identifiers contained in it.
+
+    \predicate[det,private]{add_graphs}{1}{+D:list_of_atoms}
+For each interpretation id in \arg{D}, create a new empty C++ Graph object
+
+    \predicate[det,private]{add_entity_vertices}{0}{}
+Loop through active E-relations and add the corresponding vertices
+to the internal collection of graphs (this is step 1 of graphicalization).
+
+    \predicate[det,private]{add_relationship_vertices_and_edges}{0}{}
+Loop through active R-relations and add the corresponding vertices
+to the internal collection of graphs. Additionally, add edges to the
+collection of graphs (this is step 2 of graphicalization).
+
+    \predicate{map_prolog_ids_to_vertex_ids}{3}{+Ex:atom, +IDs:[atom], -NumericIds:[integer]}
+Retrieve numeric vertex \arg{IDs} for a list of database identifiers \arg{IDs}
+in interpretation \arg{Ex}
+
+    \predicate[det]{domain_identifiers}{3}{?Ex, ?Type, ?Constants}
+True if \arg{Constants} are the constants of type \arg{Type} in interpretation \arg{Ex}.
+
+    \predicate[det,private]{search_identifiers}{0}{}
+search identifiers from the ground entity sets. Results are asserted in
+the database as \predref{domain_identifiers}{3}.
+
+    \predicate[det]{check_db}{0}{}
+Internal use. Performs some checks on the loaded data sets.
+\end{description}
+

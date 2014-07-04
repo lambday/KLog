@@ -1,0 +1,110 @@
+% This LaTeX document was generated using the LaTeX backend of PlDoc,
+% The SWI-Prolog documentation system
+
+
+
+\section{kfold.pl: k-fold cross-validation}
+
+\label{sec:kfold}
+
+\begin{tags}
+    \tag{author}
+Kurt De Grave, Paolo Frasconi
+\end{tags}
+
+This module contains predicates for estimating prediction accuracy
+using k-fold cross validation or a random train/test split. A
+``fold'' in this context refers to a set of interpretations, several
+cases can be included in a given interpretation. Common testing
+strategies like leave-one-university-out in WebKB or
+leave-one-research-group-out in UW-CSE are naturally obtained by
+setting k to the number of interpretations in the domain. The module
+contains support for stratified k-fold (where strata are specified
+by a user-defined predicate) and prepartitioned k-fold where folds
+are read from file.
+
+It is recommended that any empirical evaluation of kLog is run using
+predicates in this module since they all save experimental results
+on disk in a structured form (see below).
+
+\begin{description}
+    \item[Usage] 
+See predicates \predref{kfold}{4}, \predref{random_split}{4}, \predref{fixed_split}{6},
+\predref{prepartitioned_kfold}{4}, \predref{stratified_kfold}{5}.
+    \item[Results] 
+Results are saved in a structured way in the file system. \predref{kfold}{4}
+and \predref{random_split}{4} create a results directory named after a SHA-1
+hash of: (1) current klog flags, (2) domain traits, (3) train/test
+specification, e.g.
+
+\begin{code}
+PWD/results/e789ba9abfa5e1ae77ec0f481dab9971f343df35
+\end{code}
+
+where PWD is the current working directory. This ensures that
+different experiments run with different parameters (such as kernel
+hyperparameters, regularization, etc) or background knowledge will
+be kept separate and can coexist for subsequent analysis (e.g. model
+selection).
+
+For k-fold cross-valitation, rhe results directory is structured
+into k sub-directories, one for each fold. These contain the
+following files:
+
+\begin{code}
+auc.log
+hash_key.log      text used to generate the hash key
+output.log        predicted margins for each case in the form target margin # case term
+output.yyy        same after stripping the case term
+output.yyy.pr     recall-precision curve
+output.yyy.roc    ROC curve
+output.yyy.spr    precision points calculated at 100 recall points between 0 and 1.
+test.txt          list of test interpretations in this fold
+train.txt         list of training interpretations in this fold
+\end{code}
+
+@tbd Prediction on attributes (multiclass, regression)
+
+@credit AUCCalculator by Jesse Davis and Mark Goadrich
+\end{description}
+
+\vspace{0.7cm}
+
+\begin{description}
+    \predicate[det]{stratified_kfold}{5}{+Signature, +K, +Models, +FeatureGenerator, +StratumFunctor}
+Perform a stratified k-fold cross validation. The target \arg{Signature}
+defines the learning task(s). \arg{K} is the numnber of folds. \arg{Models} is a
+(list of) model(s) to be trained and \arg{FeatureGenerator} defines the
+used kernel. \arg{StratumFunctor} is the name of a user-declared Prolog
+predicate of the form stratum(+Interpretation,-Stratum); it should
+unify Stratum (e.g. the category for classification) with the
+stratum of the given Interpretation.
+
+    \predicate[det]{prepartitioned_kfold}{4}{+Signature, +Models, +FeatureGenerator, +DefinitionFile}
+Perform a repeated kfold cross-validation reading folds from a file
+containing facts of the form test_int(Trial,Fold,IntId). Each trial
+is saved into a separate subfolder (which in turns contains as many
+folders as folds). This is useful for comparing against other
+methods while keeping the same partitions, so that paired
+statistical tests make sense.
+
+    \predicate[det]{random_split}{4}{+Sig:atom, +Fraction:number, +Models:\{atom\}, +FGenerator:atom}
+Train and test Model(s) on a given \arg{Fraction} of existing cases
+(rest used for test). TrainFraction should be either a fraction in
+(0.0,1.0) as a float or in (0,100) as an integer.
+
+    \predicate[det]{fixed_split}{6}{+Sig:atom, +Comment:atom, +Train:[atom], +Test:[list], +Models:\{atom\}, +FGenerator:atom}
+Do train/test on a given fixed split specified by \arg{Train} and
+\arg{Test}. \arg{Comment} can be used to describe the split briefly (will go
+into the results folder name).
+
+    \predicate[det]{kfold}{4}{+Signature, +K, +Models, +FeatureGenerator}
+Perform a k-fold cross validation. Identical to \predref{stratified_kfold}{5} except no stratum predicate is used.
+
+    \predicate[private]{make_results_directory}{1}{-Dir:atom}
+Creates a directory for results based on the SHA-1 code of current
+klog flags, e.g. results/e789ba9abfa5e1ae77ec0f481dab9971f343df35,
+unify \arg{Dir} with the created directory, and put a log of flags in
+\arg{Dir}/flags.log
+\end{description}
+

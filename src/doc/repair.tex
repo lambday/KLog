@@ -1,0 +1,29 @@
+% This LaTeX document was generated using the LaTeX backend of PlDoc,
+% The SWI-Prolog documentation system
+
+
+
+\section{repair.pl: Referential integrity constraints}
+
+\label{sec:repair}
+
+\begin{tags}
+    \tag{See also}
+\verb$klog_flag$ \verb$referential_integrity_repair$
+\end{tags}
+
+A referential integrity constraint violation occurs if an R-tuple
+refers to an undefined identifier (i.e. there is no E-tuple identified
+by this foreing key). Violations can be repaired or ignored.\vspace{0.7cm}
+
+\begin{description}
+    \predicate[det]{check_and_repair}{1}{+Ex:atom}
+Scan the database for possible referential integrity violations and
+repair them. The repair strategy is defined by the flag
+\verb$referential_integrity_repair$. If the value is \const{add}, then the
+defective E-tuple is added. If the value is \const{delete} then the
+offending R-tuple is deleted. If the value is \const{ignore} an exception
+is raised: simply don't call this predicate if no check should be
+performed.
+\end{description}
+

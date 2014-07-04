@@ -1,0 +1,64 @@
+% This LaTeX document was generated using the LaTeX backend of PlDoc,
+% The SWI-Prolog documentation system
+
+
+
+\section{flags.pl: flags}
+
+\label{sec:flags}
+
+\begin{tags}
+    \tag{author}
+Paolo Frasconi
+\end{tags}
+
+Module for declaring and manipulating klog flags. For a list of
+supported flags use \predref{klog_flags}{2}.
+
+\begin{description}
+    \item[Developer note] To add more flags, use \predref{flag_traits}{4} as
+
+\begin{code}
+flag_traits(FlagName,C_Or_Prolog,Checker,Description)
+\end{code}
+
+where FlagName is an atom naming the flag, C_Or_Prolog is either the
+atom c or the atom prolog, Checker is a predicate that checks
+whether a value for this flag is legal, and Description is an atom
+describing the flag and its legal values. Prolog flags are directly
+handled in Prolog. C flags are used by the underlying kernel
+calculation system in C++. The declaration mechanism and default
+value assignment is slightly different in the two cases.
+\end{description}
+
+\vspace{0.7cm}
+
+\begin{description}
+    \predicate[det]{klog_flag}{2}{+FlagName:atom, ?Val:atom}
+If \arg{Val} is a free variable, unify it with the current value of the
+flag \arg{FlagName}. Otherwise sets \arg{FlagName} to \arg{Val}.
+
+    \predicate[semidet]{klog_flag}{3}{+Who:atom, +FlagName:atom, ?Val:atom}
+If \arg{Val} is a free variable, unify it with the current value of the
+flag \arg{FlagName}. Otherwise sets \arg{FlagName} to \arg{Val}. \arg{Who} is the handle of
+the kLog object for which the flag is read or set.
+
+    \predicate[det]{set_klog_flag}{2}{+FlagName:atom, +Val:atom}
+Sets \arg{FlagName} to \arg{Val}.
+
+    \predicate[det]{set_klog_flag}{3}{+Who:atom, +FlagName:atom, +Val:atom}
+Sets \arg{FlagName} to \arg{Val} for C++ object \arg{Who}.
+
+    \predicate[semidet]{get_klog_flag}{2}{+FlagName:atom, -Val}
+Unify \arg{Val} with the current value of the flag \arg{FlagName}.
+
+    \predicate[det]{get_klog_flag}{3}{+Who:atom, +FlagName:atom, -Val:atom}
+Unify \arg{Val} with the current value of the flag \arg{FlagName} of C++ object \arg{Who}.
+
+    \predicate[det]{klog_flags}{1}{+Stream}
+Write a description of current flags to \arg{Stream}.
+
+    \predicate[det]{klog_flags}{0}{}
+Write a description of current flags to current output stream.
+\end{description}
+

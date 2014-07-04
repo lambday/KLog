@@ -1,0 +1,361 @@
+% This LaTeX document was generated using the LaTeX backend of PlDoc,
+% The SWI-Prolog documentation system
+
+
+
+\section{learn.pl: Learning support in kLog}
+
+\label{sec:learn}
+
+\begin{tags}
+    \tag{author}
+Paolo Frasconi
+\end{tags}
+
+Formulate kLog learning jobs. Below are some examples of target
+relations that kLog may be asked to learn. Currently, implemented
+models have abilities to cover only a fraction of these.
+
+\subsection{Jobs with relational arity = 0:}
+
+\subsubsection{Binary classification of each interpretation.}
+
+\textbf{Example}: classification of small molecules.
+
+\begin{code}
+signature signature mutagenic::extensional.
+\end{code}
+
+\subsubsection{Regression for each interpretation.}
+
+\textbf{Example}: predict the affinity of small molecules binding.
+
+\begin{code}
+signature affinity(strength::property)::extensional.
+\end{code}
+
+\subsubsection{Multitask on individual interpretations.}
+
+\textbf{Example}: predict mutagenicity level and logP for small molecules.
+
+\begin{code}
+signature
+  molecule_properties(mutagenicity::property(real),
+                     logp::property(real))::extensional.
+\end{code}
+
+\subsubsection{Multiclass classification for each interpretation}
+
+\textbf{Example}: image categorization;
+
+\begin{code}
+signature image_category(cat::property)::extensional.
+\end{code}
+
+\subsection{Jobs with relational arity = 1:}
+
+\subsubsection{Binary classification of entities in each interpretation}
+
+\textbf{Examples}: detect spam webpages as in the Web Spam Challenge
+(\url{http://webspam.lip6.fr/wiki/pmwiki.php),} predict blockbuster
+movies in IMDb
+
+\begin{code}
+signature spam(url::page)::extensional.
+signature blockbuster(m::movie)::extensional.
+\end{code}
+
+\subsubsection{Multiclass classification of entities in each interpretation}
+
+\textbf{Examples}: WebKB, POS-Tagging, NER, protein secondary structure prediction
+
+\begin{code}
+signature page(url::page,category::property)::extensional.
+signature pos_tag(word::position,tag::property)::extensional.
+signature named_entity(word::position,ne::property)::extensional.
+signature secondary_structure(r::residue,ss::property)::extensional.
+\end{code}
+
+\subsubsection{Multiclass classification of entities in each interpretation}
+
+\textbf{Example}: traffic flow forecasting
+
+\begin{code}
+signature flow_value(s::station,flow::property(real))::extensional.
+\end{code}
+
+\subsection{Jobs with relational arity = 2:}
+
+\subsubsection{Link prediction tasks}
+
+\textbf{Examples}: protein beta partners, UW-CSE, Entity resolution,
+Protein-protein interactions
+
+\begin{code}
+signature partners(r1::residue,r2::residue)::extensional.
+signature advised_by(p1::person,p2::person)::extensional.
+signature same_venue(v1::venue,v2::venue)::extensional.
+signature phosphorylates(p1::kinase,p2::protein)::extensional.
+signature regulates(g1::gene,g2::gene)::extensional.
+\end{code}
+
+\subsubsection{Regression on pairs of entities}
+
+\textbf{Example}: traffic flow forecasting at different stations and
+different lead times, Prediction of distance between protein
+secondary structure elements
+
+\begin{code}
+signature congestion(s::station,lead::time,
+                     flow::property(float))::extensional.
+signature distance(sse1:sse,sse2:sse,d::property(float))::intensional.
+\end{code}
+
+\subsubsection{Pairwise hierarchical classification}
+
+\textbf{Example}: traffic congestion level forecasting at different stations and different lead times
+
+\begin{code}
+signature congestion_level(s::station,lead::time,
+                           level::property)::extensional.
+\end{code}
+
+\subsection{Tasks with relational arity $>$ 2:}
+
+\subsubsection{Prediction of hyperedges}
+
+\textbf{Example}: Spatial role labeling
+
+\begin{code}
+signature ttarget(w1::sp_ind_can, w2::trajector_can,
+                  w3::landmark_can)::intensional.
+\end{code}
+
+\textbf{Example}: Metal binding geometry
+
+\begin{code}
+signature binding_site(r1::residue,r2::residue,
+                       r3::residue,r4::residue)::extensional.
+\end{code}
+
+\subsubsection{Classification of hyperedges}
+
+\textbf{Example}: Metal binding geometry with ligand prediction
+
+\begin{code}
+signature binding_site(r1::residue,r2::residue,
+                       r3::residue,r4::residue,
+                       metal::property)::extensional.
+\end{code}
+
+\subsection{Subsampling}
+
+The following predefined dynamic predicate fails by default:
+
+\begin{code}
+  user:klog_reject(+Case,+TrainOrPredict)
+\end{code}
+
+By defining your own version of it, it is easy to implement
+selective subsampling of cases. A typical usage would be for dealing
+with a highly imbalanced data set where you want to subsample only a
+fraction of negatives. Case is a Prolog callable predicate
+associated with a training or testing case. When kLog generates
+cases, it calls \qpredref{user}{klog_reject}{2} to determine if the case should
+be rejected. TrainOrPredict should be either 'train' or 'predict' to
+do subsampling either at training or testing time. For example
+suppose we have a binary classification task and we want to reject
+90 percent of the negatives at training time. Then the following
+code should be added to the kLog script.
+
+\begin{code}
+klog_reject(Case,train) :-
+  \+ call(Case),
+  random(R),
+  R>0.1.
+\end{code}
+
+\subsection{Predicates}
+
+\vspace{0.7cm}
+
+\begin{description}
+    \predicate[det,private]{depends_transitive}{2}{?S1:atom, ?S:atom}
+Tabled. Contains dependency analysis results to properly kill vertices in
+the graphs. The predicate succeeds if \arg{S1} ``depends'' on \arg{S}. The
+mechanism actually goes a bit beyond a simple transitive closure of
+the call graph: when several targets are present in the same file it
+is necessary to extend the definition of dependencies. The set of
+dependent signatures is defined as follows:
+
+\begin{enumerate}
+    \item All ancestors, including \arg{S} itself (obvious)
+    \item All the descendants (less obvious; however, if a target signature
+\arg{S} is intensional and calls some predicate Y in its definition, then
+Y supposedly (although not necessarily) contains some supervision
+information, which should be removed).
+    \item All the ancestors of the descendants (maybe even less obvious,
+but if now there is some other signature T which calls Y, then T
+will also contain supervision information).
+
+The descendants of the ancestors need not to be removed.
+
+Some of the ancestors of \arg{S} might be legitimate predicates that have
+nothing to do with supervision. Therefore we restrict ourselves to
+the subset of the call graph with predicates that are either in the
+user: namespace (where the 'user' could cheat accessing supervision
+information) or in the data set file (in the db: namespace). In any
+case, since removal of vertices from the graph might surprise the
+user, kLog issues a warning if there are killed signatures besides
+the target signature of the current training or test
+procedure. Finally, one can declare a signature to be safe using
+\predref{safe}{1}. In this case it is assumed that the Prolog code inside it
+does not exploit any supervision information. \predref{safe}{1} should be used
+with care.
+
+The table depends on \predref{current_depends_directly}{2} which is asserted by
+\predref{record_dependencies}{0}, called at the end of \qpredref{graphicalize}{attach}{1}.
+\end{enumerate}
+
+    \predicate[det]{train}{4}{+S:atom, +Examples:list_of_atoms, +Model:atom, +Feature_Generator:atom}
+Train \arg{Model} on a data set of interpretations, using
+\arg{Feature_Generator} as the feature generator. \arg{Examples} is a list of
+interpretation identifiers. \arg{S} is a signature. For each possible
+combination of identifiers in \arg{S}, a set of "cases" is generated where
+a case is just a pseudo-iid example. If \arg{S} has no properties,
+positive cases are those for which a tuple exist in the
+interpretation and negative cases all the rest. If \arg{S} has one
+property, this property acts as a label for the case (can be also
+regression if the property is a real number). Two or more properties
+define a multi-task problem (currently handled as a set of
+independent tasks). Problems like small molecules classification
+have a target signature with zero arity which works fine as a
+special case of relationship. \arg{Model} should have the ability of
+solving the task specified in the target signature \arg{S}.
+
+\begin{tags}
+\mtag{Errors}- if the target signature is a kernel point (training on it would be cheating) \\- if \arg{Model} cannot solve the task specified by \arg{S}.
+    \tag{To be done}
+Multitask taking correltations into account
+\end{tags}
+
+    \predicate[det,private]{kill_present}{2}{+TargetSignature:atom, +Examples:list}
+Predicates \predref{kill_present}{2} and \predref{kill_future}{1} are needed to setup training and
+test data. Let's
+call vertices associated with the target signature plus all their
+dependents (defined by \predref{depends_transitive}{2}) the set of "query"
+vertices. In the case of unsliced interpretations, all query
+vertices must be killed. The case of sliced interpretations is more
+tricky and is handled as follows:
+
+Example using IMdB, slice_preceq defined by time (years)
+
+Suppose data set contains imdb(1953),...,imdb(1997) and that we want
+to train on [imdb(1992),imdb(1993)] and test on
+[imdb(1995),imdb(1996)]. Then during training we first take the most
+recent year in the training set (1993) and kill \textbf{everything}
+strictly in the future (i.e. 1994, 1995, 1996, 1997) using
+\predref{kill_future}{1} plus the query vertices in the present (i.e. 1992 and
+1993) using \predref{kill_present}{2}. Test is similar, we take the most recent
+year in the test set (1996) and kill \textbf{everything} strictly in the
+future (i.e. 1997) plus the query vertices in the present (i.e. 1995
+and 1996). Thus, for example, movies of 1994 are not used for
+training but during prediction their labels are (rightfully)
+accessible for computing feature vectors. In a hypothetical
+transductive setting we might keep alive vertices in the future for
+"evidence" signatures. However this is not currently supported.
+
+\predref{kill_present}{2} kills vertices associated with the \arg{TargetSignature}
+(and dependents) in the present slices. If interpretations are not
+sliced vertices are killed anyway.
+
+    \predicate[det,private]{kill_future}{1}{+Examples:list}
+Kill entire slices in the strict future (if there are no sliced
+interpretations \predref{kill_future}{1} does nothing since max_slice will
+fail)
+
+    \predicate[det,private]{list_of_slices}{2}{+SlicedInterpretations, ?Slices}
+\arg{Slices} is unified with the list of slices found in \arg{SlicedInterpretations}.
+
+    \predicate[det,private]{preceq_max_list}{2}{+List, ?M}
+\arg{M} is unified with the max element in \arg{List} according to the total
+order defined by \qpredref{db}{slice_preceq}{2}.
+
+    \predicate[det,private]{preceq_min_list}{2}{+List, ?M}
+\arg{M} is unified with the min element in \arg{List} according to the total
+order defined by \qpredref{db}{slice_preceq}{2}.
+
+    \predicate[det]{predict}{4}{+S:atom, +Examples:list_of_atoms, +Model:atom, +Feature_Generator:atom}
+Test \arg{Model} on a data set of interpretations. Use \arg{Feature_Generator} as the feature
+generator. \arg{Examples} is a list of interpretation identifiers. \arg{S} is a
+signature. Cases are generated as in \predref{train}{3}. The predicate asserts
+induced facts as follows:
+
+\begin{code}
+induced(InterpretationId,db:interpretation(InterpretationID,Fact)).
+\end{code}
+
+    \predicate[nondet,private]{get_task}{4}{+TargetSignature:atom, -TaskIndex:integer, -TaskName:atom, -Values:list}
+Given \arg{TargetSignature}, retrieve the i-th task (starting from 0),
+unify \arg{TaskIndex} with i, \arg{TaskName} with its name and \arg{Values} with the
+list of target values found in the data set for this task. \arg{TaskName}
+is either in the form N\#P where N is the property name and P the
+position in the argument list, or the atom 'callme' meaning that the
+task is to learn a relationship.
+
+    \predicate[det,private]{cases_loop}{7}{+TS, +Examples, +Model, +FG, +TName, +TType, +TOrP}
+Core procedure for training (if \arg{TOrP}=train) or testing (if
+\arg{TOrP}=predict). \arg{TS} is the target signature. \arg{Examples} is a list of
+interpretations (from which cases are built). \arg{Model} is a kLog
+model. \arg{FG} is a kLog feature generator. \arg{TName} and \arg{TType} are the task
+name and type as returned by \predref{get_task}{4}. The loop generates all
+cases for each interpretation (using \predref{tuple_of_identifiers}{3}) and
+creates (if necessary) all required feature vectors and output
+labels. In prediction mode, cases are immediately predicted. In
+training mode, C++-level predicates \predref{train_model}{2} and \predref{test_dataset}{3}
+are called at the end of the loop. In both cases, results are
+accumulated both in the local and the global reporters. However the
+local reporter is reset when this loop starts. This is useful for
+obtaining training set accuracy and test set accuracy of individual
+folds in k-fold-CV.
+
+    \predicate[nondet,private]{tuple_of_identifiers}{3}{+Ex, +S, -List}
+Unify IDList with a tuple of identifiers in \arg{Ex} whose type appears in
+signature \arg{S}. On backtracking will retrieve all possible tuples. For
+tasks such as link prediction, this predicate is used to generate
+all pairs of candidates.
+
+    \predicate[nondet,private]{identifier}{3}{+Ex, +S, -ID}
+Unify \arg{ID} with one of the identifiers of \arg{S} in \arg{Ex}. On backtracking
+will return all data identifiers for signature \arg{S} in interpretation
+\arg{Ex}. The predicate fails if \arg{S} is not an entity.
+
+    \predicate[private]{clean_internals}{1}{IntId}
+
+    \predicate[det,private]{prolog_make_sparse_vector}{5}{Model, Feature_Generator, Ex, CaseID, ViewPoint}
+Wrapper around C++ method for making feature vectors.
+\arg{Feature_Generator} is the name of the feature generator object that
+will be used. \arg{Ex} is the interpretation name, possibly sliced. \arg{CaseID}
+identifies the case for which the feature vector is
+generated. \arg{ViewPoint} is a list of vertex IDs (C++ integer code)
+around which the feature vector is constructed. For unsliced
+interpretations, the feature vector is registered under a
+slash-separated string like ai/advised_by/person20/person240,
+created from the interpretation identifier (e.g. ai) followed by the
+target signature (e.g. advised_by) and the identifiers of the
+entities that define the case, (e.g. person20 and person412). For
+sliced interpretations the slice name is also used to construct the
+identifiers, e.g. imdb_1997 and imdb_1997/m441332. \arg{Model} is used to
+determine the internal format of the feature vector being generated.
+
+    \predicate[det,private]{make_case_id}{4}{Ex, S, IDTuple, CaseID}
+Unifies \arg{CaseID} with a unique identifier for (sliced) interpretation
+\arg{Ex}, target signature \arg{S}, and tuple of identifiers \arg{IDTuple}. See
+\predref{prolog_make_sparse_vector}{5} for details on how this is formatted.
+
+    \predicate[det]{save_induced_facts}{2}{Signatures, Filename}
+Every 'induced' fact (asserted during test) is saved to \arg{Filename} for
+a rough implementation of iterative relabeling. The target signature
+is renamed by prefixing it with 'pred_'.
+\end{description}
+

@@ -1,0 +1,21 @@
+\BOOKMARK [0][-]{section*.1}{Contents}{}% 1
+\BOOKMARK [0][-]{chapter.1}{Introduction}{}% 2
+\BOOKMARK [0][-]{chapter.2}{Tutorial}{}% 3
+\BOOKMARK [1][-]{section.2.1}{Bursi}{chapter.2}% 4
+\BOOKMARK [1][-]{section.2.2}{Biodeg}{chapter.2}% 5
+\BOOKMARK [1][-]{section.2.3}{UW-CSE}{chapter.2}% 6
+\BOOKMARK [1][-]{section.2.4}{WebKB}{chapter.2}% 7
+\BOOKMARK [1][-]{section.2.5}{IMDB}{chapter.2}% 8
+\BOOKMARK [0][-]{chapter.3}{Main components of the kLog Prolog library}{}% 9
+\BOOKMARK [1][-]{section.3.1}{syntax.pl: kLog syntax}{chapter.3}% 10
+\BOOKMARK [1][-]{section.3.2}{db.pl: kLog database interface}{chapter.3}% 11
+\BOOKMARK [1][-]{section.3.3}{graphicalize.pl: Convert deductive databases into graphs}{chapter.3}% 12
+\BOOKMARK [1][-]{section.3.4}{kfold.pl: k-fold cross-validation}{chapter.3}% 13
+\BOOKMARK [1][-]{section.3.5}{learn.pl: Learning support in kLog}{chapter.3}% 14
+\BOOKMARK [1][-]{section.3.6}{flags.pl: flags}{chapter.3}% 15
+\BOOKMARK [1][-]{section.3.7}{repair.pl: Referential integrity constraints}{chapter.3}% 16
+\BOOKMARK [0][-]{chapter.4}{Advanced components}{}% 17
+\BOOKMARK [1][-]{section.4.1}{timing.pl}{chapter.4}% 18
+\BOOKMARK [1][-]{section.4.2}{goals.pl: goals}{chapter.4}% 19
+\BOOKMARK [1][-]{section.4.3}{utils.pl}{chapter.4}% 20
+\BOOKMARK [1][-]{section.4.4}{doc/cinterface.pl: C++ interface}{chapter.4}% 21

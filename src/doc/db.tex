@@ -1,0 +1,37 @@
+% This LaTeX document was generated using the LaTeX backend of PlDoc,
+% The SWI-Prolog documentation system
+
+
+
+\section{db.pl: kLog database interface}
+
+\label{sec:db}
+
+\begin{tags}
+    \tag{author}
+Paolo Frasconi
+    \tag{To be done}
+Maybe an interface to a DBMS such as MySQL
+\end{tags}
+
+This module provides access to the extensional database. Currently
+it just consults a Prolog database ensuring that facts are loaded
+into the db namespace.
+
+\begin{description}
+    \item[Syntactical conventions] 
+The extensional declarations should use the special predicate
+\qpredref{db}{interpretation}{2} whose first argument is an identifier for the
+interpration (any Prolog term) and whose second argument is a fact.
+    \item[History] 
+see git log
+\end{description}
+
+\vspace{0.7cm}
+
+\begin{description}
+    \predicate[det]{db_consult}{1}{+File_s:atom_or_list}
+Consult a collection of ground facts from File(s). Also accepts
+basenames of .pl.gz gzipped files.
+\end{description}
+

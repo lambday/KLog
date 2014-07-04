@@ -1,0 +1,12 @@
+===== performance report (Local reporter  (on train data)) =====
+# Cases:  1852
+Error:       4.48%
+Precision:  48.28%
+Recall:     52.50%
+F1-measure: 50.30%
+Contingency table:
+                  +       -
+Predicted +      42      45
+          -      38    1727
+
+========= end report (Local reporter  (on train data)) =========
