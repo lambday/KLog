@@ -1,1 +1,0 @@
-[graphics,language,systems,theory]

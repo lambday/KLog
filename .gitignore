@@ -3,4 +3,5 @@
 *.log
 *.a
 *.dot
-results
+*.html
+results/*
