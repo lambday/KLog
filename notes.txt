@@ -1,0 +1,22 @@
+experiment
+|--klog_flag				(flags.pl)
+|--set_klog_flag			(  -do-  )
+|--new_feature_generator	(c_interface.cpp:1064)
+	|-- arg1=feature generator id
+	|-- arg2=feature generator type
+	'-- FeatureGeneratorPool.new_feature_generator
+		'-- returns a new feature generator instantiated by type (FeatureGeneratorPool.h:65)
+			|-- FeatureGenerator abstract base class providing abstract method generate_feature_vector(arg1,arg2,arg3)
+			|-- arg1=GraphClass& aG
+				'-- inherits from abstract BaseGraphClass
+			|-- arg2=CaseWrapper* x
+				'-- abstract base, wraps different representations of feature vectors and define dot_product
+			|-- arg3=vector<unsigned>& aFirstEndpointList (default empty)
+			'-- e.g. NSPDK_FeatureGenerator.cc:111, depends
+				|-- NSPDK_FeatureGenerator.GenerateFeatures(aG,aFirstEndpointsList) (:235)
+					|-- aG.ComputePairwiseDistanceInformation(mDistance,mRadius)
+					'-- for all distance,radius, call GenerateFeatures(aG,d,r,first_endpoint_list)
+				'-- NSPDK_FeatureGenerator.ConvertToSparseVector(x)
+|--new_model				(c_interface.cpp)
+|--attach					(graphicalize.pl)
+'--kfold					(kfold.pl)

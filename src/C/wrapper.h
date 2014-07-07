@@ -25,30 +25,58 @@
 #ifndef WRAPPER_H
 #define WRAPPER_H 1
 
+template <class Rep>
+class Wrapper {
+private:
+    Rep *q;
 
-template <class Rep> 
-class Wrapper
-{
- private:
-  Rep *q;
-  Rep *ref(Rep *q) { q->refcount++; return q; }
-  void deref(Rep *q) { if (! --(q->refcount)) delete q; }
-  
- public:
-  Wrapper() 
-    : q(new Rep) { q->refcount = 1; }
-  Wrapper(Rep *rep)
-    : q(rep) { q->refcount = 1; }
-  Wrapper(const Wrapper<Rep> &other) 
-    : q(ref(other.q)) {}
-  ~Wrapper() 
-    { deref(q); }
-  Wrapper& operator=(const Wrapper<Rep> &other) 
-    { Rep *p = q; q = ref(other.q); deref(p); return *this; }
-  void detach() 
-    { if (q->refcount > 1) { deref(q); q=q->copy(); q->refcount=1; } }
-  Rep *rep() const
-    { return q; }
+    Rep *ref(Rep *q) {
+        q->refcount++;
+        return q;
+    }
+
+    void deref(Rep *q) {
+        if (! --(q->refcount)) delete q;
+    }
+
+public:
+
+    Wrapper()
+    : q(new Rep) {
+        q->refcount = 1;
+    }
+
+    Wrapper(Rep *rep)
+    : q(rep) {
+        q->refcount = 1;
+    }
+
+    Wrapper(const Wrapper<Rep> &other)
+    : q(ref(other.q)) {
+    }
+
+    ~Wrapper() {
+        deref(q);
+    }
+
+    Wrapper& operator=(const Wrapper<Rep> &other) {
+        Rep *p = q;
+        q = ref(other.q);
+        deref(p);
+        return *this;
+    }
+
+    void detach() {
+        if (q->refcount > 1) {
+            deref(q);
+            q = q->copy();
+            q->refcount = 1;
+        }
+    }
+
+    Rep *rep() const {
+        return q;
+    }
 };
 
 

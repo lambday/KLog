@@ -29,32 +29,42 @@
 
 class Model {
 protected:
-  std::string model_id;
-  std::string model_type;
-  std::string working_directory;
+    std::string model_id;
+    std::string model_type;
+    std::string working_directory;
 public:
-  Model(std::string model_id = "void_model") {
-    this->model_id = model_id;
-    model_type = "null_model";
-    working_directory = ".";
-  };
-  virtual ~Model() {};
-  virtual std::string str(void) {
-    std::stringstream oss;
-    oss << "Model: >" << model_id << "<" << std::endl;
-    return oss.str();
-  }
-  std::string get_model_type(void) const {return model_type;}
-  void set_model_wd(const std::string& wd) { working_directory = wd; }
-  virtual void load(const std::string filename) = 0;
-  virtual void save(const std::string filename) = 0;
-  virtual bool check_ability(const std::string ability) = 0;
-  virtual void train(const std::vector<std::string>& interpretation_ids) = 0;
-  virtual void test_dataset(const std::vector<std::string>& interpretation_ids, bool newdata) = 0;
-  virtual void reset_reporter(const std::string& r, const std::string& desc) = 0;
-  virtual void report(std::ostream& os,const std::string& r) = 0;
-  virtual void save_predictions(const std::string& dir,const std::string& r) = 0;
-  virtual double get_prediction(const std::string& caseid) = 0;
+
+    Model(std::string model_id = "void_model") {
+        this->model_id = model_id;
+        model_type = "null_model";
+        working_directory = ".";
+    };
+
+    virtual ~Model() {
+    };
+
+    virtual std::string str(void) {
+        std::stringstream oss;
+        oss << "Model: >" << model_id << "<" << std::endl;
+        return oss.str();
+    }
+
+    std::string get_model_type(void) const {
+        return model_type;
+    }
+
+    void set_model_wd(const std::string& wd) {
+        working_directory = wd;
+    }
+    virtual void load(const std::string filename) = 0;
+    virtual void save(const std::string filename) = 0;
+    virtual bool check_ability(const std::string ability) = 0;
+    virtual void train(const std::vector<std::string>& interpretation_ids) = 0;
+    virtual void test_dataset(const std::vector<std::string>& interpretation_ids, bool newdata) = 0;
+    virtual void reset_reporter(const std::string& r, const std::string& desc) = 0;
+    virtual void report(std::ostream& os, const std::string& r) = 0;
+    virtual void save_predictions(const std::string& dir, const std::string& r) = 0;
+    virtual double get_prediction(const std::string& caseid) = 0;
 };
 
 #endif /* MODEL_H_ */

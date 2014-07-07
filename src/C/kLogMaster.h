@@ -28,21 +28,31 @@
 
 class kLogMaster : public FlagsServiceClient {
 private:
-  unsigned verbosity;
-  std::string install_directory;
-  std::string save_subgraphs_directory;
+    unsigned verbosity;
+    std::string install_directory;
+    std::string save_subgraphs_directory;
 public:
-  kLogMaster() : FlagsServiceClient("klog_master") { 
-    new_flag(&verbosity, "verbosity",
-             "(0..5)\nVerbosity level: 0=silent, 1=errors, 2=warnings, 3=progress, 4=debug, 5=detailed debug");
-    new_flag(&install_directory, "install_directory",
-             "klog installation directory");
-    new_flag(&save_subgraphs_directory, "save_subgraphs_directory",
-             "where GML subgraphs associated to cases are saved (e.g. for use with other kernels);\nIf empty then subsgraphs are not saved");
-  }
-  unsigned get_verbosity(void) const {return verbosity;}
-  const std::string& get_install_directory(void) const {return install_directory;}
-  const std::string& get_save_subgraphs_directory(void) const {return save_subgraphs_directory;}
+
+    kLogMaster() : FlagsServiceClient("klog_master") {
+        new_flag(&verbosity, "verbosity",
+                "(0..5)\nVerbosity level: 0=silent, 1=errors, 2=warnings, 3=progress, 4=debug, 5=detailed debug");
+        new_flag(&install_directory, "install_directory",
+                "klog installation directory");
+        new_flag(&save_subgraphs_directory, "save_subgraphs_directory",
+                "where GML subgraphs associated to cases are saved (e.g. for use with other kernels);\nIf empty then subsgraphs are not saved");
+    }
+
+    unsigned get_verbosity(void) const {
+        return verbosity;
+    }
+
+    const std::string& get_install_directory(void) const {
+        return install_directory;
+    }
+
+    const std::string& get_save_subgraphs_directory(void) const {
+        return save_subgraphs_directory;
+    }
 };
 
 extern kLogMaster The_Master;

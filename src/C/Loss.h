@@ -36,86 +36,114 @@
 /**
    Hinge loss (Support vector machine)
  */
-struct HingeLoss
-{
-  static bool name() { return "HingeLoss";}
-  static bool ability(const std::string ab) { return ab=="binary_classification";}
-  struct loss {
-    double operator()(double f, double y) {
-      double z = f*y;
-      if (z < 1)
-        return 1 - z;
-      return 0;
+struct HingeLoss {
+
+    static bool name() {
+        return "HingeLoss";
     }
-  };
-  struct dloss {
-    double operator()(double f, double y) {
-      double z = f*y;
-      if (z < 1)
-        // return 1;
-        return -y;
-      return 0;
+
+    static bool ability(const std::string ab) {
+        return ab == "binary_classification";
     }
-  };
+
+    struct loss {
+
+        double operator()(double f, double y) {
+            double z = f*y;
+            if (z < 1)
+                return 1 - z;
+            return 0;
+        }
+    };
+
+    struct dloss {
+
+        double operator()(double f, double y) {
+            double z = f*y;
+            if (z < 1)
+                // return 1;
+                return -y;
+            return 0;
+        }
+    };
 };
 
 /**
    Log-exp or soft-hinge loss (Logistic regression)
  */
-struct SoftHingeLoss
-{
-  static std::string name() { return "SoftHingeLoss";}
-  static bool ability(const std::string ab) { return ab=="binary_classification";}
-  struct loss {
-    double operator()(double f, double y) {
-      double z = f*y;
-      if (z > 18)
-        return exp(-z);
-      if (z < -18)
-        return -z;
-      return log(1+exp(-z));
+struct SoftHingeLoss {
+
+    static std::string name() {
+        return "SoftHingeLoss";
     }
-  };
-  struct dloss {
-    double operator()(double f, double y) {
-      double z = f*y;
-      if (z > 18)
-        // return exp(-z);
-        return -y*exp(-z);
-      if (z < -18)
-        // return 1;
-        return -y;
-      // return 1 / (exp(z) + 1);
-      return -y / (exp(z) + 1);
+
+    static bool ability(const std::string ab) {
+        return ab == "binary_classification";
     }
-  };
+
+    struct loss {
+
+        double operator()(double f, double y) {
+            double z = f*y;
+            if (z > 18)
+                return exp(-z);
+            if (z < -18)
+                return -z;
+            return log(1 + exp(-z));
+        }
+    };
+
+    struct dloss {
+
+        double operator()(double f, double y) {
+            double z = f*y;
+            if (z > 18)
+                // return exp(-z);
+                return -y * exp(-z);
+            if (z < -18)
+                // return 1;
+                return -y;
+            // return 1 / (exp(z) + 1);
+            return -y / (exp(z) + 1);
+        }
+    };
 };
 
 /**
    Exponential loss (Adaboost-like)
  */
 // FIXME: not tested
-struct ExponentialLoss
-{
-  static std::string name() { return "ExponentialLoss";}
-  static bool ability(const std::string ab) { return ab=="binary_classification";}
-  struct loss {
-    double operator()(double f, double y) {
-      double z = f*y;
-      if (z > 18)
-        return 0;
-      return exp(-z);
+
+struct ExponentialLoss {
+
+    static std::string name() {
+        return "ExponentialLoss";
     }
-  };
-  struct dloss {
-    double operator()(double f, double y) {
-      double z = f*y;
-      if (z > 18)
-        return 0;
-      // return -exp(-z);
-      return -y*exp(-z);// FIXME: Check this!!! (was negative before changing signs)
+
+    static bool ability(const std::string ab) {
+        return ab == "binary_classification";
     }
-  };
+
+    struct loss {
+
+        double operator()(double f, double y) {
+            double z = f*y;
+            if (z > 18)
+                return 0;
+            return exp(-z);
+        }
+    };
+
+    struct dloss {
+
+        double operator()(double f, double y) {
+            double z = f*y;
+            if (z > 18)
+                return 0;
+            // return -exp(-z);
+            return -y * exp(-z); // FIXME: Check this!!! (was negative before changing signs)
+        }
+    };
 };
 
 /**
@@ -123,41 +151,64 @@ struct ExponentialLoss
  */
 // FIXME: epsilon should be a settable flag
 #define epsilon 0.01
-struct EpsilonInsensitiveLoss
-{
-  static std::string name() { return "EpsilonInsensitiveLoss";}
-  static bool ability(const std::string ab) { return ab=="regression";}
-  // static const double epsilon=0.01;
-  static double _max(double a,double b) { return a>b?a:b;}
-  struct loss {
-    double operator()(double f, double y) {
-      return _max(0,fabs(y-f)-epsilon);
+
+struct EpsilonInsensitiveLoss {
+
+    static std::string name() {
+        return "EpsilonInsensitiveLoss";
     }
-  };
-  struct dloss {
-    double operator()(double f, double y) {
-      return (f-y)*(fabs(y-f)>epsilon);
+
+    static bool ability(const std::string ab) {
+        return ab == "regression";
     }
-  };
+    // static const double epsilon=0.01;
+
+    static double _max(double a, double b) {
+        return a > b ? a : b;
+    }
+
+    struct loss {
+
+        double operator()(double f, double y) {
+            return _max(0, fabs(y - f) - epsilon);
+        }
+    };
+
+    struct dloss {
+
+        double operator()(double f, double y) {
+            return (f - y)*(fabs(y - f) > epsilon);
+        }
+    };
 };
 #undef epsilon
+
 /**
    Square loss (Ordinary least squares regression)
  */
-struct SquareLoss
-{
-  static std::string name() { return "SquareLoss";}
-  static bool ability(const std::string ab) { return ab=="regression" || ab=="binary_classification";}
-  struct loss {
-    double operator()(double f, double y) {
-      return (f-y)*(f-y);
+struct SquareLoss {
+
+    static std::string name() {
+        return "SquareLoss";
     }
-  };
-  struct dloss {
-    double operator()(double f, double y) {
-      return 2.0 * (f-y);
+
+    static bool ability(const std::string ab) {
+        return ab == "regression" || ab == "binary_classification";
     }
-  };
+
+    struct loss {
+
+        double operator()(double f, double y) {
+            return (f - y)*(f - y);
+        }
+    };
+
+    struct dloss {
+
+        double operator()(double f, double y) {
+            return 2.0 * (f - y);
+        }
+    };
 };
 
 #ifdef NEVER
@@ -167,53 +218,66 @@ struct SquareLoss
 // FIXME: not tested
 // FIXME: unclear how to integrate this... needs something like
 // LB_VectorModel.h for vector outputs. Not tested
-struct SoftmaxLoss
-{
+
+struct SoftmaxLoss {
 private:
-  static double l;
-  static std::vector<double> p;
-  static std::vector<double> deriv;
-  static bool ready;
+    static double l;
+    static std::vector<double> p;
+    static std::vector<double> deriv;
+    static bool ready;
 public:
-  static std::string name() { return "SoftmaxLoss";}
-  static bool ability(const std::string ab) { return ab=="multiclass_classification";}
-  SoftmaxLoss() { ready = false; }
-  struct loss {
-    double operator()(const std::vector<double>& f, const std::vector<double>& y) {
-      unsigned K=f.size();
-      if (K!=y.size())
-        throw std::length_error("size mismatch in SoftmaxLoss::loss()");
-      p.resize(K);
-      deriv.resize(K);
-      l = 0;
-      // Compute softmax. Handle overflow by subtracting max margin
-      double max=f[0];
-      for (unsigned k=1; k<K; k++)
-        if (f[k]>max)
-          max = f[k];
-      double den=0.0;
-      for (unsigned k=0; k<K; k++)
-        den += exp(f[k]-max);
-      for (unsigned k=0; k<K; k++)
-        p[k] = exp(f[k]-max)/den;
-      for (unsigned k=0; k<K; k++) {
-        l += y[k]*log(p[k]);
-        deriv[k] = y[k]-p[k];
-      }
-      ready = true;
-      return l;
+
+    static std::string name() {
+        return "SoftmaxLoss";
     }
-  };
-  struct dloss {
-    double operator()(const std::vector<double>& f, const std::vector<double>& y, std::vector<double>& dC) {
-      // Actually do nothing, it's cheaper to compute derivatives
-      // while computing the loss, just retrieve the computed vector.
-      if (!ready)
-        throw std::logic_error("derivatives not ready in SoftmaxLoss::dloss()");
-      dC = deriv;
-      ready = false;
+
+    static bool ability(const std::string ab) {
+        return ab == "multiclass_classification";
     }
-  };
+
+    SoftmaxLoss() {
+        ready = false;
+    }
+
+    struct loss {
+
+        double operator()(const std::vector<double>& f, const std::vector<double>& y) {
+            unsigned K = f.size();
+            if (K != y.size())
+                throw std::length_error("size mismatch in SoftmaxLoss::loss()");
+            p.resize(K);
+            deriv.resize(K);
+            l = 0;
+            // Compute softmax. Handle overflow by subtracting max margin
+            double max = f[0];
+            for (unsigned k = 1; k < K; k++)
+                if (f[k] > max)
+                    max = f[k];
+            double den = 0.0;
+            for (unsigned k = 0; k < K; k++)
+                den += exp(f[k] - max);
+            for (unsigned k = 0; k < K; k++)
+                p[k] = exp(f[k] - max) / den;
+            for (unsigned k = 0; k < K; k++) {
+                l += y[k] * log(p[k]);
+                deriv[k] = y[k] - p[k];
+            }
+            ready = true;
+            return l;
+        }
+    };
+
+    struct dloss {
+
+        double operator()(const std::vector<double>& f, const std::vector<double>& y, std::vector<double>& dC) {
+            // Actually do nothing, it's cheaper to compute derivatives
+            // while computing the loss, just retrieve the computed vector.
+            if (!ready)
+                throw std::logic_error("derivatives not ready in SoftmaxLoss::dloss()");
+            dC = deriv;
+            ready = false;
+        }
+    };
 };
 
 // FIXME: maybe also write Crammer & Singer loss for multiclass SVM

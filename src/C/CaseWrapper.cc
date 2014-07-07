@@ -25,47 +25,46 @@
 #include <sys/resource.h>
 
 void pmem() {
-  struct rusage r_usage;
+    struct rusage r_usage;
 
-  if (getrusage(RUSAGE_SELF, &r_usage)) {
-    throw std::out_of_range("getrusage()");
-  }
-  std::cout << "max_resident, = "
+    if (getrusage(RUSAGE_SELF, &r_usage)) {
+        throw std::out_of_range("getrusage()");
+    }
+    std::cout << "max_resident, = "
             << r_usage.ru_maxrss;
-  std::cout << "  statics, globals, and new/malloc = "
+    std::cout << "  statics, globals, and new/malloc = "
             << r_usage.ru_idrss
             << std::endl;
 }
 
 static unsigned malloced = 0;
-void malloced_add(unsigned n)
-{
-  pmem();
-  malloced += n;
-  std::cout << "++ malloced " << malloced << std::endl;
-}
-void malloced_sub(unsigned n)
-{
-  malloced -= n;
-  std::cout << "-- malloced " << malloced << std::endl;
-  pmem();
+
+void malloced_add(unsigned n) {
+    pmem();
+    malloced += n;
+    std::cout << "++ malloced " << malloced << std::endl;
 }
 
-std::ostream& 
-operator<<(std::ostream &os, const CaseWrapper &c)
-{
-  c.write(os);
-  return os;
+void malloced_sub(unsigned n) {
+    malloced -= n;
+    std::cout << "-- malloced " << malloced << std::endl;
+    pmem();
+}
+
+std::ostream&
+operator<<(std::ostream &os, const CaseWrapper &c) {
+    c.write(os);
+    return os;
 }
 
 CaseWrapper* new_wrapper(const std::string& mtype) {
-  if (mtype=="lb")
-    return new LB_CaseWrapper();
-  else if (mtype=="libsvm")
-    return new LibSVM_CaseWrapper();
-  else if (mtype=="external")
-    return new LB_CaseWrapper();
-  else
-    KLOG_THROW("Invalid model type >" << mtype << "< in new_wrapper");
-  return NULL;
+    if (mtype == "lb")
+        return new LB_CaseWrapper();
+    else if (mtype == "libsvm")
+        return new LibSVM_CaseWrapper();
+    else if (mtype == "external")
+        return new LB_CaseWrapper();
+    else
+        KLOG_THROW("Invalid model type >" << mtype << "< in new_wrapper");
+    return NULL;
 }

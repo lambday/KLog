@@ -24,64 +24,56 @@
 #include <ctime>
 
 #ifdef USE_REALTIME_CLOCK
-# include <sys/time.h>
-# include <time.h>
+#include <sys/time.h>
+#include <time.h>
+
 static double
-klock()
-{
-  struct timeval tv;
-  gettimeofday(&tv, NULL);
-  return (double) tv.tv_sec + (double) tv.tv_usec * 1e-6;
-  return (double) std::clock() / (double) CLOCKS_PER_SEC;
+klock() {
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    return (double) tv.tv_sec + (double) tv.tv_usec * 1e-6;
+    return (double) std::clock() / (double) CLOCKS_PER_SEC;
 }
 #else
+
 static double
-klock()
-{
-  return (double) std::clock() / (double) CLOCKS_PER_SEC;
+klock() {
+    return (double) std::clock() / (double) CLOCKS_PER_SEC;
 }
 #endif
 
 Timer::Timer()
-  : a(0), s(0), r(0)
-{
+: a(0), s(0), r(0) {
 }
 
-void 
-Timer::reset()
-{
-  a = 0;
-  s = 0;
-  r = 0;
+void
+Timer::reset() {
+    a = 0;
+    s = 0;
+    r = 0;
 }
-
-
-double 
-Timer::elapsed()
-{
-  double n = klock();
-  if (r)
-    a += n - s;
-  s = n;
-  return a;
-}
-
-double 
-Timer::start()
-{
-  elapsed();
-  r = 1;
-  return a;
-}
-
-
 
 double
-Timer::stop()
-{
-  elapsed();
-  r = 0;
-  return a;
+Timer::elapsed() {
+    double n = klock();
+    if (r)
+        a += n - s;
+    s = n;
+    return a;
+}
+
+double
+Timer::start() {
+    elapsed();
+    r = 1;
+    return a;
+}
+
+double
+Timer::stop() {
+    elapsed();
+    r = 0;
+    return a;
 }
 
 

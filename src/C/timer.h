@@ -24,18 +24,16 @@
 #ifndef TIMER_H
 #define TIMER_H 1
 
-
-class Timer
-{
+class Timer {
 public:
-  Timer();
-  void reset();
-  double start();
-  double stop();
-  double elapsed();
+    Timer();
+    void reset();
+    double start();
+    double stop();
+    double elapsed();
 private:
-  double a, s;
-  int    r;
+    double a, s;
+    int r;
 };
 
 

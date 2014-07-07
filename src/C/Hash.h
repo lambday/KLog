@@ -27,7 +27,7 @@
 
 using namespace std;
 
-unsigned HashFunc(const string& aString, unsigned aBitMask = (std::numeric_limits<unsigned>::max()>>1));
-unsigned HashFunc(const vector<unsigned>& aList, unsigned aBitMask = (std::numeric_limits<unsigned>::max()>>1));
+unsigned HashFunc(const string& aString, unsigned aBitMask = (std::numeric_limits<unsigned>::max() >> 1));
+unsigned HashFunc(const vector<unsigned>& aList, unsigned aBitMask = (std::numeric_limits<unsigned>::max() >> 1));
 
 #endif

@@ -30,20 +30,27 @@
 
 class FeatureGenerator {
 protected:
-  std::string feature_generator_id;
+    std::string feature_generator_id;
 
 public:
-  FeatureGenerator(std::string feature_generator_id = "void_feature_generator") {
-    this->feature_generator_id = feature_generator_id;
-  };
-  virtual ~FeatureGenerator() {};
-  virtual std::string str(void) {
-    std::stringstream oss;
-    oss << "FeatureGenerator: >" << feature_generator_id << "<" << std::endl;
-    return oss.str();
-  }
-  virtual void generate_feature_vector(const GraphClass& aG, CaseWrapper* x, const vector<unsigned>& aFirstEndpointList=vector<unsigned>()) = 0;
-  virtual string get_param(const std::string& name) {return "";};
+
+    FeatureGenerator(std::string feature_generator_id = "void_feature_generator") {
+        this->feature_generator_id = feature_generator_id;
+    };
+
+    virtual ~FeatureGenerator() {
+    };
+
+    virtual std::string str(void) {
+        std::stringstream oss;
+        oss << "FeatureGenerator: >" << feature_generator_id << "<" << std::endl;
+        return oss.str();
+    }
+    virtual void generate_feature_vector(const GraphClass& aG, CaseWrapper* x, const vector<unsigned>& aFirstEndpointList = vector<unsigned>()) = 0;
+
+    virtual string get_param(const std::string& name) {
+        return "";
+    };
 };
 
 #endif /* FEATUREGENERATOR_H_ */

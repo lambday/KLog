@@ -31,9 +31,6 @@
 #include "NSPDK_FeatureGenerator.h"
 #include "Utility.h"
 
-
-
-
 /** This singleton is a pool of feature generators. Its internal
 dictionary maps strings (as seen by prolog) into FeatureGenerator
 pointers allowing kLog code to refer to different feature generators
@@ -43,53 +40,70 @@ c_interface.cpp. See elsewhere the documentation of each particular
 method. */
 class FeatureGeneratorPool {
 private:
-  typedef std::map<std::string,FeatureGenerator*> Map;
-  Map feature_generator_pool;
+    typedef std::map<std::string, FeatureGenerator*> Map;
+    Map feature_generator_pool;
 
-  FeatureGeneratorPool() {};
-  FeatureGeneratorPool(FeatureGeneratorPool const& rhs);
-  FeatureGeneratorPool& operator=(FeatureGeneratorPool const& rhs);
+    FeatureGeneratorPool() {
+    };
+    FeatureGeneratorPool(FeatureGeneratorPool const& rhs);
+    FeatureGeneratorPool& operator=(FeatureGeneratorPool const& rhs);
 
 public:
-  static FeatureGeneratorPool& get_instance() {
-	  static FeatureGeneratorPool instance;
-	  return instance;
-  }
-  FeatureGenerator* get_feature_generator(const std::string& gid) {
-    Map::iterator found = feature_generator_pool.find(gid);
-    if ( found == feature_generator_pool.end() ) {
-      KLOG_THROW("Invalid feature-generator identifier >" << gid << "<");
+
+    static FeatureGeneratorPool& get_instance() {
+        static FeatureGeneratorPool instance;
+        return instance;
     }
-    return (*found).second;
-  }
-  void new_feature_generator(const std::string& gid, const std::string& gtype) {
-    Map::iterator found = feature_generator_pool.find(gid);
-    if ( found != feature_generator_pool.end() ) {
-      //      throw std::out_of_range("Duplicate feature_generator identifier in new_feature_generator()");
-      std::cout << "Warning: overwriting feature_generator " << gid << std::endl;
-      delete found->second;
+
+    FeatureGenerator* get_feature_generator(const std::string& gid) {
+        Map::iterator found = feature_generator_pool.find(gid);
+        if (found == feature_generator_pool.end()) {
+            KLOG_THROW("Invalid feature-generator identifier >" << gid << "<");
+        }
+        return (*found).second;
     }
-    FeatureGenerator* g;
-    if (gtype == "nspdk") {g = new NSPDK_FeatureGenerator(gid);} 
-    else if (gtype == "mnspdk") {g = new MNSPDK_FeatureGenerator(gid);} 
-    else if (gtype == "rnspdk") {g = new RNSPDK_FeatureGenerator(gid);} 
-    else if (gtype == "anspdk") {g = new ANSPDK_FeatureGenerator(gid);} 
-    else if (gtype == "alnspdk") {g = new ALNSPDK_FeatureGenerator(gid);} 
-    else if (gtype == "nspdk3d") {g = new NSPDK3D_FeatureGenerator(gid);} 
-    else {
-      KLOG_THROW("Invalid feature-generator type >" << gtype << "<");
+
+    void new_feature_generator(const std::string& gid, const std::string& gtype) {
+        Map::iterator found = feature_generator_pool.find(gid);
+        if (found != feature_generator_pool.end()) {
+            //      throw std::out_of_range("Duplicate feature_generator identifier in new_feature_generator()");
+            std::cout << "Warning: overwriting feature_generator " << gid << std::endl;
+            delete found->second;
+        }
+        FeatureGenerator* g;
+        if (gtype == "nspdk") {
+            g = new NSPDK_FeatureGenerator(gid);
+        }
+        else if (gtype == "mnspdk") {
+            g = new MNSPDK_FeatureGenerator(gid);
+        }
+        else if (gtype == "rnspdk") {
+            g = new RNSPDK_FeatureGenerator(gid);
+        }
+        else if (gtype == "anspdk") {
+            g = new ANSPDK_FeatureGenerator(gid);
+        }
+        else if (gtype == "alnspdk") {
+            g = new ALNSPDK_FeatureGenerator(gid);
+        }
+        else if (gtype == "nspdk3d") {
+            g = new NSPDK3D_FeatureGenerator(gid);
+        }
+        else {
+            KLOG_THROW("Invalid feature-generator type >" << gtype << "<");
+        }
+        feature_generator_pool[gid] = g;
     }
-    feature_generator_pool[gid] = g;
-  }
-  void delete_feature_generator(const std::string& gid) {
-    Map::iterator found = feature_generator_pool.find(gid);
-    if ( found != feature_generator_pool.end() ) {
-      delete (*found).second;
-      feature_generator_pool.erase(found);
-    } else {
-      KLOG_THROW("Invalid feature-generator identifier >" << gid << "<");
+
+    void delete_feature_generator(const std::string& gid) {
+        Map::iterator found = feature_generator_pool.find(gid);
+        if (found != feature_generator_pool.end()) {
+            delete (*found).second;
+            feature_generator_pool.erase(found);
+        } else {
+            KLOG_THROW("Invalid feature-generator identifier >" << gid << "<");
+        }
     }
-  }
 };
 
 extern FeatureGeneratorPool& The_FeatureGeneratorPool;
