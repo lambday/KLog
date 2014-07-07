@@ -1,3 +1,48 @@
+predefined predicates:
++-? + for input to predicate, - for output from predicate, ?for anything
+http://www.cse.unsw.edu.au/~billw/prologdict.html#plusminusquery
+==========================================================================
+- forall/2
+	forall(:Cond,:Action)
+	Note: \+ Goal succeeds if Goal cannot be proven
+	e.g. forall(:Cond,:Action):- \+ (Cond,\+ Action) i.e. there is no
+	instantiations of Cond for which Action is false. forall/2 doesn't change
+	any variable bindings. It proves a relation
+- atomic_list_concat/2
+	atomic_list_concat(+List,-Atom)
+	Succeeds if Atom can be unified with the concatenated elements of List
+- member/2 [:- use_module(library(lists))]
+	member(?Elem, ?List)
+	True if Elem is a member of List.
+- flatten/2 [:- use_module(library(lists))]
+	flatten(+List1,+List2)
+	Is true if List2 is a non-nested version of List1.
+- ;/2 ->/2
+	if-then-else construct
+	( If ->
+		Then
+	;
+		Else
+	).
+	can be nested as well.
+	( If_1, If_2 ->
+	  	Then_1, Then_2
+	;
+		( Else_1,
+		  ( If_3 -> Then_3 ; Else_3),
+		  Else_2
+		)
+	).
+- setof/3
+	setof(+Template, +Goal, -Set)
+	similar to bagof/3 which Unify Bag with the alternatives of Template.
+	If Goal has free variables besides the one sharing with Template,
+	bagof/3 will backtrack over the alternatives of these free variables,
+	unifying Bag with the corresponding alternatives of Template.
+	In addition, setof sorts the result using sort/2 to get a sorted list
+	of alternatives without duplicates.
+
+#==========================================================================
 experiment
 |--klog_flag				(flags.pl)
 |--set_klog_flag			(  -do-  )
@@ -7,10 +52,10 @@ experiment
 	'-- FeatureGeneratorPool.new_feature_generator
 		'-- returns a new feature generator instantiated by type
 			(FeatureGeneratorPool.h:65)
-			|-- FeatureGenerator abstract base class providing abstract method
+			Note: FeatureGenerator abstract base class providing abstract method
 				generate_feature_vector(arg1,arg2,arg3) which is called from
 				DataSet.make_sparse_vector (DataSet.h:388)
-				make_sparse_vector is made a prolog predicate via yap
+				Note: make_sparse_vector is made a prolog predicate via yap
 					'-- prolog_make_sparse_vector <- deal_with_case <- cases_loop
 								<- train, predict (learn.pl)
 						'-- singlefold <- dofolds <- stratified_kfold
@@ -21,12 +66,58 @@ experiment
 				'-- abstract base, wraps different representations of feature
 					vectors and define dot_product
 			|-- arg3=vector<unsigned>& aFirstEndpointList (default empty)
+				Note: learn.pl:695, this gets initialized by ViewPoint)
+				which gets initialized in map_prolog_ids_to_vertex_ids
+				defined in graphicalize.pl:558
 			'-- e.g. NSPDK_FeatureGenerator.cc:114, depends
 				|-- NSPDK_FeatureGenerator.GenerateFeatures(aG,aFirstEndpointsList) (:224)
 					|-- aG.ComputePairwiseDistanceInformation(mDistance,mRadius)
 					'-- for all distance,radius,
 						call GenerateFeatures(aG,d,r,first_endpoint_list)
-				'-- NSPDK_FeatureGenerator.ConvertToSparseVector(x)
-|--new_model				(c_interface.cpp)
+				'-- NSPDK_FeatureGenerator.ConvertToSparseVector(x) (:140) uses hierarchical
+					feature list generation and finally compute a hash and set to x
+|--new_model				(c_interface.cpp:1072)
+	|-- arg1=model id
+	|-- arg2=model type
+	'-- ModelPool.new_model (ModelPool.h:73)
+		Creates a new instance of a model (abstract class, loss and classifier type are
+		template args) Model.h, abstract methods train,test_dataset,report,get_prediction etc
+		|-- LB_ScalarModel<LossFunction,PerformanceReporter>
+		'-- PerformanceReporter stores the classification results (Performance.h)
+			the model does the classification and store results via reporter.add_case
+			in Reported.add_case. called from Model.train <- ModelPool.train_model
+			which is made a prolog predicate and called in learn.pl:678 (cases_loop)
 |--attach					(graphicalize.pl)
+	[TODO]
 '--kfold					(kfold.pl)
+# for the uwcse dataset
+# =================================================================================
+kfold(Signature=advised_by,N=5,Models=my_model,FeatureGenerator=my_fg)
+'-stratified_kfold(+advised_by,+5,+my_model,+my_fg,+_) (kfold.pl:153)
+  |-atomic_list_concat(+[advised_by,',k-fold CV'],-Description)
+  |-prolog_reset_reporter(+my_model,+global,+Description) (kfold.pl:216)
+	|-flatten(+my_model,-ListOfModels) % more than one model can be handled
+	'-forall(member(+my_model,+ListOfModels),reset_reporter(+my_model,+global,+Description)
+	  (call ModelPool.reset_reporter ModelPool.h:203 which calls local/global reporter's
+	  reset() to clean up previous stored results)
+  |-make_results_directory(+advised_by,+stratified_kfold,-Dir,-Made)
+    (if result directory Dir exists then skip, else)
+	|-examples(-D) (defined in graphicalize.pl:205)
+	 '-setof(+Ex,example(-Ex),+D)
+	  '-example(-Ex):-db:interpretation(-Ex,_Facts)
+	|-random_partition_stratified/random_partition(+D,+5,-Folds)
+	 '-random_partition.pl: Folds gets a list of examples to run
+	'-dofolds(+advised_by,+5,+my_model,+my_fg,+Dir,+Folds)
+	 |-forall( between(1,5,FoldNr)
+        ( nth1(+FoldNr, +Folds, -TestData, -OtherFolds),
+		  append(+OtherFolds,-TrainData),
+		  singlefold(+advised_by,+FoldNr,+TrainData,+TestData,+my_model,+my_fg,+Dir) (kfold.pl:111)
+		  |- sort the training and test data
+		  |- create result directory
+		  |- train(+advised_by,+SortedTrainData,+my_model,+my_fg) and report
+		  |- test(+advised_by,+SortedTestData,+my_model,+my_fg) and report
+		  '- save predictions
+		  )
+		),
+	 '-save_predictions(+my_model,+Dir,+global)
+
