@@ -4,4 +4,6 @@
 *.a
 *.dot
 *.html
-results/*
+*.png
+*.swp
+results
