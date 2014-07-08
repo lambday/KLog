@@ -1,6 +1,29 @@
-predefined predicates:
+* Notes
+==========================================================================
 +-? + for input to predicate, - for output from predicate, ?for anything
 http://www.cse.unsw.edu.au/~billw/prologdict.html#plusminusquery
+
+Determinism     Predicate behaviour
+--------------------------------------------------------------------------
+det             Succeeds exactly once without a choice point
+semidet         Fails or Succeeds exactly once without a choice-point
+failure         Always fails
+nondet          No constraints on the number of times the predicate succeeds
+                and whether or not it leaves choice-points on the last success.
+multi           As nondet, but succeeds at least one time.
+
+Instantiation patterns are:
+--------------------------------------------------------------------------
++	Argument must be fully instantiated to a term that satisfies the type.
+-	Argument must be unbound.
+?	Argument must be bound to a partial term of the indicated type.
+	Note that a variable is a partial term for any type.
+:	Argument is a meta-argument. Implies +.
+@	Argument is not further instantiated.
+!	Argument contains a mutable structure that may be modified using setarg/3
+	or nb_setarg/3.
+
+* predefined predicates:
 ==========================================================================
 - forall/2
 	forall(:Cond,:Action)
@@ -8,6 +31,11 @@ http://www.cse.unsw.edu.au/~billw/prologdict.html#plusminusquery
 	e.g. forall(:Cond,:Action):- \+ (Cond,\+ Action) i.e. there is no
 	instantiations of Cond for which Action is false. forall/2 doesn't change
 	any variable bindings. It proves a relation
+- retractall/1
+	retractall(+Head)
+	All facts or clauses in the database for which the head unifies with Head
+	are removed. If Head refers to a predicate that is not defined, it is
+	implicitly created as a dynamic predicate
 - atomic_list_concat/2
 	atomic_list_concat(+List,-Atom)
 	Succeeds if Atom can be unified with the concatenated elements of List
@@ -101,23 +129,46 @@ kfold(Signature=advised_by,N=5,Models=my_model,FeatureGenerator=my_fg)
 	  (call ModelPool.reset_reporter ModelPool.h:203 which calls local/global reporter's
 	  reset() to clean up previous stored results)
   |-make_results_directory(+advised_by,+stratified_kfold,-Dir,-Made)
-    (if result directory Dir exists then skip, else)
-	|-examples(-D) (defined in graphicalize.pl:205)
-	 '-setof(+Ex,example(-Ex),+D)
-	  '-example(-Ex):-db:interpretation(-Ex,_Facts)
-	|-random_partition_stratified/random_partition(+D,+5,-Folds)
-	 '-random_partition.pl: Folds gets a list of examples to run
-	'-dofolds(+advised_by,+5,+my_model,+my_fg,+Dir,+Folds)
-	 |-forall( between(1,5,FoldNr)
-        ( nth1(+FoldNr, +Folds, -TestData, -OtherFolds),
-		  append(+OtherFolds,-TrainData),
-		  singlefold(+advised_by,+FoldNr,+TrainData,+TestData,+my_model,+my_fg,+Dir) (kfold.pl:111)
-		  |- sort the training and test data
-		  |- create result directory
-		  |- train(+advised_by,+SortedTrainData,+my_model,+my_fg) and report
-		  |- test(+advised_by,+SortedTestData,+my_model,+my_fg) and report
-		  '- save predictions
-		  )
-		),
-	 '-save_predictions(+my_model,+Dir,+global)
+  (if result directory Dir exists then skip, else)
+  |-examples(-D) (defined in graphicalize.pl:205)
+   '-setof(+Ex,example(-Ex),+D)
+    '-example(-Ex):-db:interpretation(-Ex,_Facts)
+  |-random_partition_stratified/random_partition(+D,+5,-Folds)
+   '-random_partition.pl: Folds gets a list of examples to run
+  '-dofolds(+advised_by,+5,+my_model,+my_fg,+Dir,+Folds)
+   |-forall( between(1,5,FoldNr)
+    ( nth1(+FoldNr, +Folds, -TestData, -OtherFolds),
+	  append(+OtherFolds,-TrainData),
+	  singlefold(+advised_by,+FoldNr,+TrainData,+TestData,+my_model,+my_fg,+Dir) (kfold.pl:111)
+	  |- sort the training and test data
+	  |- create result directory
+	  |- train(+advised_by,+SortedTrainData,+my_model,+my_fg) and report
+	  |- test(+advised_by,+SortedTestData,+my_model,+my_fg) and report
+	  '- save predictions
+	)
+   ),
+   '-save_predictions(+my_model,+Dir,+global)
 
+some important predicates
+=========================
+ ?- domain_traits(X,Y). Y=Relationships
+[signatures,[advised_by,has_position,in_phase,on_same_500_course,on_same_course,
+    on_same_paper,professor,student,years_in_program]]
+[extensional_signatures,[has_position,in_phase,years_in_program,advised_by,student,professor]]
+[intensional_signatures,[on_same_course,on_same_500_course,on_same_paper]]
+[entities,[professor,student]]
+[relationships,[advised_by,has_position,in_phase,on_same_500_course,on_same_course,
+    on_same_paper,years_in_program]]
+[active_signatures,[advised_by,has_position,in_phase,on_same_500_course,on_same_course,
+    on_same_paper,professor,student,years_in_program]]
+[active_entities,[professor,student]]
+[active_relationships,[advised_by,has_position,in_phase,on_same_500_course,on_same_course,
+    on_same_paper,years_in_program]]
+
+ ?- graphicalize:database. all interpretations/ground atoms (extensional and intensional)
+ ?- db:interpretation(X,Y). all interpretations/ground atoms (X=interpretation,Y=atom)
+
+TODO: Understand the features generated and the nature of the kernel
+Important that we understand what points the kernel is computed on to
+understand the nature of applying a clustering algorithm on it.
+QUESTION: WHAT DOES THE FEATURE VECTOR LOOK LIKE?
